@@ -1,0 +1,18 @@
+{
+  "welcome": "🏟️ SPLITRIDE에 오신 것을 환영합니다! ⚽\n\n월드컵 경기 후 다른 팬들과 함께 귀가 차량을 나누세요.\n\n아래 버튼을 눌러 앱을 열고 매치를 찾으세요!",
+  "payment_title": "SPLITRIDE 매치",
+  "payment_description": "{stadium}에서 {zone} 방면 팬 3명과 매칭. 라이드를 나누세요!",
+  "payment_success": "✅ 결제 완료! {stadium} → {zone} 대기열에 등록되었습니다.\n\n{remaining}명의 팬을 더 기다리고 있습니다...",
+  "match_found": "🎉 라이드 크루가 준비되었습니다!\n\n🚗 {stadium} → {zone}\n\n그룹에 참여하세요:",
+  "topic_welcome": "🚗 라이드 그룹: {stadium} → {zone}\n\n👥 4명의 크루가 매칭되었습니다!\n\n📍 다음 단계:\n1. 📎 버튼 → 📍 위치 → 실시간 위치 공유 (1시간)를 탭하세요\n2. 지정된 게이트에서 만나세요\n3. 한 명이 Uber/차량을 호출 — 비용을 4명이 나누세요\n\n⚠️ 누군가 나타나지 않으면 아래 버튼으로 신고해 주세요.",
+  "report_button": "🚨 불참 신고 / 환불",
+  "report_prompt": "누가 나타나지 않았나요? 사용자를 선택하세요:",
+  "report_received": "✅ 신고가 접수되었습니다. 2명 이상의 탑승자가 확인하면 자동으로 환불됩니다.",
+  "report_already": "이미 이 라이드에 대한 신고를 제출했습니다.",
+  "refund_issued": "💰 {amount} ⭐ 환불이 계정으로 발행되었습니다.",
+  "user_blacklisted": "🚫 사용자가 불참으로 신고되어 3일간 정지되었습니다.",
+  "blacklisted_error": "⛔ 불참 신고로 인해 현재 정지 상태입니다. {hours}시간 후 정지가 해제됩니다.",
+  "queue_timeout": "⏰ 시간 내에 충분한 탑승자를 찾지 못했습니다. {amount} ⭐이 환불되었습니다.",
+  "open_app": "SPLITRIDE 열기",
+  "error_generic": "문제가 발생했습니다. 다시 시도해 주세요."
+}

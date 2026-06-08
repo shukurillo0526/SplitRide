@@ -1,0 +1,18 @@
+{
+  "welcome": "🏟️ Willkommen bei SPLITRIDE! ⚽\n\nTeile deine Heimfahrt von der WM mit anderen Fans.\n\nTippe auf den Button unten, um die App zu öffnen und dein Match zu finden!",
+  "payment_title": "SPLITRIDE Match",
+  "payment_description": "Werde mit 3 Fans Richtung {zone} ab {stadium} gematcht. Teilt die Fahrt!",
+  "payment_success": "✅ Zahlung erhalten! Du bist in der Warteschlange für {stadium} → {zone}.\n\nWarte auf {remaining} weitere Fans...",
+  "match_found": "🎉 Deine Fahrgruppe ist bereit!\n\n🚗 {stadium} → {zone}\n\nTritt deiner Gruppe bei:",
+  "topic_welcome": "🚗 FAHRGRUPPE: {stadium} → {zone}\n\n👥 Deine 4er-Gruppe ist gematcht!\n\n📍 NÄCHSTE SCHRITTE:\n1. Tippe auf 📎 → 📍 Standort → Live-Standort teilen (1 Stunde)\n2. Trefft euch am vorgesehenen Gate\n3. Eine Person bestellt das Uber/Fahrt — teilt die Kosten durch 4\n\n⚠️ Falls jemand nicht erscheint, nutze den Button unten zum Melden.",
+  "report_button": "🚨 Nichterscheinen melden / Erstattung",
+  "report_prompt": "Wer ist nicht erschienen? Wähle den Nutzer aus:",
+  "report_received": "✅ Meldung erhalten. Wenn 2+ Mitfahrer bestätigen, werden Erstattungen automatisch ausgestellt.",
+  "report_already": "Du hast bereits eine Meldung für diese Fahrt abgegeben.",
+  "refund_issued": "💰 Eine Erstattung von {amount} ⭐ wurde auf dein Konto ausgestellt.",
+  "user_blacklisted": "🚫 Der Nutzer wurde wegen Nichterscheinens gemeldet und für 3 Tage gesperrt.",
+  "blacklisted_error": "⛔ Du bist derzeit wegen einer Nichterscheinen-Meldung gesperrt. Deine Sperre endet in {hours} Stunden.",
+  "queue_timeout": "⏰ Wir konnten nicht genügend Mitfahrer rechtzeitig finden. Deine {amount} ⭐ wurden erstattet.",
+  "open_app": "SPLITRIDE öffnen",
+  "error_generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+}

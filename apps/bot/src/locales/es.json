@@ -1,0 +1,18 @@
+{
+  "welcome": "🏟️ ¡Bienvenido a SPLITRIDE! ⚽\n\nComparte tu viaje de regreso del Mundial con otros aficionados.\n\n¡Toca el botón de abajo para abrir la app y encontrar tu grupo!",
+  "payment_title": "SPLITRIDE Match",
+  "payment_description": "Emparéjate con 3 aficionados rumbo a {zone} desde {stadium}. ¡Compartan el viaje!",
+  "payment_success": "✅ ¡Pago recibido! Estás en la cola para {stadium} → {zone}.\n\nEsperando a {remaining} aficionados más...",
+  "match_found": "🎉 ¡Tu grupo de viaje está listo!\n\n🚗 {stadium} → {zone}\n\nÚnete a tu grupo:",
+  "topic_welcome": "🚗 GRUPO DE VIAJE: {stadium} → {zone}\n\n👥 ¡Tu grupo de 4 está listo!\n\n📍 PRÓXIMOS PASOS:\n1. Toca el botón 📎 → 📍 Ubicación → Compartir ubicación en vivo (1 hora)\n2. Reúnanse en la puerta designada\n3. Una persona pide el Uber/viaje — dividan el costo en 4\n\n⚠️ Si alguien no aparece, usa el botón de abajo para reportar.",
+  "report_button": "🚨 Reportar Ausencia / Reembolso",
+  "report_prompt": "¿Quién no apareció? Selecciona al usuario:",
+  "report_received": "✅ Reporte recibido. Si 2+ pasajeros confirman, los reembolsos se emitirán automáticamente.",
+  "report_already": "Ya has enviado un reporte para este viaje.",
+  "refund_issued": "💰 Se ha emitido un reembolso de {amount} ⭐ a tu cuenta.",
+  "user_blacklisted": "🚫 El usuario ha sido reportado por ausencia y suspendido por 3 días.",
+  "blacklisted_error": "⛔ Estás suspendido debido a un reporte de ausencia. Tu suspensión termina en {hours} horas.",
+  "queue_timeout": "⏰ No pudimos encontrar suficientes pasajeros a tiempo. Tus {amount} ⭐ han sido reembolsadas.",
+  "open_app": "Abrir SPLITRIDE",
+  "error_generic": "Algo salió mal. Por favor, intenta de nuevo."
+}

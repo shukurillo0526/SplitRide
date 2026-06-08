@@ -1,0 +1,18 @@
+{
+  "welcome": "🏟️ Bienvenue sur SPLITRIDE ! ⚽\n\nPartagez votre trajet retour de la Coupe du Monde avec d'autres supporters.\n\nAppuyez sur le bouton ci-dessous pour ouvrir l'appli et trouver votre groupe !",
+  "payment_title": "SPLITRIDE Match",
+  "payment_description": "Rejoignez 3 supporters en direction de {zone} depuis {stadium}. Partagez le trajet !",
+  "payment_success": "✅ Paiement reçu ! Vous êtes dans la file pour {stadium} → {zone}.\n\nEn attente de {remaining} supporters supplémentaires...",
+  "match_found": "🎉 Votre groupe de trajet est prêt !\n\n🚗 {stadium} → {zone}\n\nRejoignez votre groupe :",
+  "topic_welcome": "🚗 GROUPE DE TRAJET : {stadium} → {zone}\n\n👥 Votre groupe de 4 est formé !\n\n📍 PROCHAINES ÉTAPES :\n1. Appuyez sur le bouton 📎 → 📍 Position → Partager la position en direct (1 heure)\n2. Retrouvez-vous à la porte désignée\n3. Une personne commande l'Uber/trajet — divisez le coût par 4\n\n⚠️ Si quelqu'un ne se présente pas, utilisez le bouton ci-dessous pour signaler.",
+  "report_button": "🚨 Signaler Absence / Remboursement",
+  "report_prompt": "Qui ne s'est pas présenté ? Sélectionnez l'utilisateur :",
+  "report_received": "✅ Signalement reçu. Si 2+ passagers confirment, les remboursements seront émis automatiquement.",
+  "report_already": "Vous avez déjà soumis un signalement pour ce trajet.",
+  "refund_issued": "💰 Un remboursement de {amount} ⭐ a été émis sur votre compte.",
+  "user_blacklisted": "🚫 L'utilisateur a été signalé pour absence et suspendu pour 3 jours.",
+  "blacklisted_error": "⛔ Vous êtes actuellement suspendu suite à un signalement d'absence. Votre suspension prend fin dans {hours} heures.",
+  "queue_timeout": "⏰ Nous n'avons pas trouvé assez de passagers à temps. Vos {amount} ⭐ ont été remboursées.",
+  "open_app": "Ouvrir SPLITRIDE",
+  "error_generic": "Une erreur est survenue. Veuillez réessayer."
+}

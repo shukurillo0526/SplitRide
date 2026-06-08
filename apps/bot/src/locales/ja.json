@@ -1,0 +1,18 @@
+{
+  "welcome": "🏟️ SPLITRIDEへようこそ！⚽\n\nワールドカップからの帰り道を他のファンとシェアしましょう。\n\n下のボタンをタップしてアプリを開き、マッチを見つけましょう！",
+  "payment_title": "SPLITRIDE マッチ",
+  "payment_description": "{stadium}から{zone}方面の3人のファンとマッチング。ライドをシェア！",
+  "payment_success": "✅ 支払い完了！{stadium} → {zone}のキューに入りました。\n\nあと{remaining}人のファンを待っています...",
+  "match_found": "🎉 ライド仲間が見つかりました！\n\n🚗 {stadium} → {zone}\n\nグループに参加:",
+  "topic_welcome": "🚗 ライドグループ: {stadium} → {zone}\n\n👥 4人のグループがマッチしました！\n\n📍 次のステップ:\n1. 📎ボタン → 📍位置情報 → ライブ位置情報を共有（1時間）をタップ\n2. 指定されたゲートで集合\n3. 1人がUber/配車を注文 — 費用を4人で割り勘\n\n⚠️ 誰かが来ない場合は、下のボタンで報告してください。",
+  "report_button": "🚨 不参加を報告 / 返金",
+  "report_prompt": "誰が来ませんでしたか？ユーザーを選択してください：",
+  "report_received": "✅ 報告を受け付けました。2人以上の乗客が確認すると、自動的に返金されます。",
+  "report_already": "このライドについてはすでに報告済みです。",
+  "refund_issued": "💰 {amount} ⭐の返金がアカウントに発行されました。",
+  "user_blacklisted": "🚫 ユーザーは不参加として報告され、3日間停止されました。",
+  "blacklisted_error": "⛔ 不参加報告により現在停止中です。停止は{hours}時間後に解除されます。",
+  "queue_timeout": "⏰ 時間内に十分な乗客が見つかりませんでした。{amount} ⭐が返金されました。",
+  "open_app": "SPLITRIDEを開く",
+  "error_generic": "エラーが発生しました。もう一度お試しください。"
+}

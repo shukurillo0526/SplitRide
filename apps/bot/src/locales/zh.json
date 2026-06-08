@@ -1,0 +1,18 @@
+{
+  "welcome": "🏟️ 欢迎使用 SPLITRIDE！⚽\n\n与其他球迷共享世界杯回程车费。\n\n点击下方按钮打开应用，找到你的拼车伙伴！",
+  "payment_title": "SPLITRIDE 匹配",
+  "payment_description": "与3名前往{zone}的球迷从{stadium}出发匹配。一起拼车！",
+  "payment_success": "✅ 付款成功！您已加入 {stadium} → {zone} 的队列。\n\n正在等待另外 {remaining} 名球迷...",
+  "match_found": "🎉 您的拼车小组已就绪！\n\n🚗 {stadium} → {zone}\n\n加入您的小组：",
+  "topic_welcome": "🚗 拼车小组：{stadium} → {zone}\n\n👥 您的4人小组已匹配成功！\n\n📍 下一步：\n1. 点击 📎 按钮 → 📍 位置 → 共享实时位置（1小时）\n2. 在指定入口集合\n3. 一人叫Uber/打车 — 费用4人平分\n\n⚠️ 如有人未到场，请使用下方按钮举报。",
+  "report_button": "🚨 举报缺席 / 退款",
+  "report_prompt": "谁没有出现？请选择用户：",
+  "report_received": "✅ 举报已收到。如2名以上乘客确认，将自动发放退款。",
+  "report_already": "您已提交过此行程的举报。",
+  "refund_issued": "💰 已向您的账户退还 {amount} ⭐。",
+  "user_blacklisted": "🚫 该用户因缺席被举报，已被停权3天。",
+  "blacklisted_error": "⛔ 您因缺席举报目前被停权。停权将在 {hours} 小时后解除。",
+  "queue_timeout": "⏰ 未能在规定时间内找到足够的乘客。您的 {amount} ⭐ 已退还。",
+  "open_app": "打开 SPLITRIDE",
+  "error_generic": "出了点问题。请重试。"
+}

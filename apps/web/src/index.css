@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Styles ──────────────────────────────────────────────────────────── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--tg-theme-bg-color, #0a0a0a);
+  color: var(--tg-theme-text-color, #ffffff);
+  overflow-x: hidden;
+  min-height: var(--tg-viewport-stable-height, 100vh);
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tg-theme-hint-color, #444);
+  border-radius: 4px;
+}
+
+/* ─── Glassmorphism ────────────────────────────────────────────────────────── */
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-light {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .gradient-card {
+    background: linear-gradient(
+      135deg,
+      rgba(16, 185, 129, 0.08) 0%,
+      rgba(59, 130, 246, 0.08) 50%,
+      rgba(139, 92, 246, 0.08) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* ─── Custom Select ───────────────────────────────────────────────────── */
+  .select-wrapper {
+    position: relative;
+  }
+
+  .select-wrapper::after {
+    content: '▾';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--tg-theme-hint-color, #7a7a7a);
+    font-size: 14px;
+  }
+
+  .custom-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 100%;
+    padding: 14px 40px 14px 44px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: var(--tg-theme-secondary-bg-color, #1a1a1a);
+    color: var(--tg-theme-text-color, #ffffff);
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    outline: none;
+  }
+
+  .custom-select:focus {
+    border-color: var(--tg-theme-button-color, #5eaaef);
+    box-shadow: 0 0 0 3px rgba(94, 170, 239, 0.15);
+  }
+
+  .custom-select:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .custom-select option {
+    background-color: var(--tg-theme-secondary-bg-color, #1a1a1a);
+    color: var(--tg-theme-text-color, #ffffff);
+    padding: 12px;
+  }
+
+  /* ─── CTA Button Gradient ─────────────────────────────────────────────── */
+  .cta-gradient {
+    background: linear-gradient(135deg, #10b981, #059669, #047857);
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  .cta-gradient:hover {
+    background: linear-gradient(135deg, #34d399, #10b981, #059669);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.35);
+  }
+
+  .cta-gradient:active {
+    transform: translateY(0);
+  }
+
+  .cta-gradient:disabled {
+    background: rgba(255, 255, 255, 0.08);
+    animation: none;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  /* ─── Progress Bar ────────────────────────────────────────────────────── */
+  .progress-bar {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ─── Pulsing Dots ────────────────────────────────────────────────────── */
+  .dot-pulse {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dot-pulse span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: dot-bounce 1.4s ease-in-out infinite;
+  }
+
+  .dot-pulse span:nth-child(2) { animation-delay: 0.16s; }
+  .dot-pulse span:nth-child(3) { animation-delay: 0.32s; }
+}
+
+/* ─── Additional Keyframes ──────────────────────────────────────────────── */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
