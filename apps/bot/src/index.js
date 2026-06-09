@@ -8,6 +8,7 @@ import {
   getQueueLength,
   getMatchStatus,
   getUserQueue,
+  getQueueMembers,
   isBlacklisted,
   getBlacklistTTL,
   getRideHistory,

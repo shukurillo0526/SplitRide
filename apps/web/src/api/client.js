@@ -15,7 +15,10 @@ function getHeaders(rawInitData) {
  * Returns { invoiceUrl, fee, stadium, zone }
  */
 export async function createInvoice(stadiumId, zoneId, rawInitData, customDestination = '') {
-  const res = await fetch(`${API_URL}/api/create-invoice`, {
+  const url = `${API_URL}/api/create-invoice`;
+  console.log('[API] createInvoice →', url, { stadiumId, zoneId, hasAuth: !!rawInitData });
+
+  const res = await fetch(url, {
     method: 'POST',
     headers: getHeaders(rawInitData),
     body: JSON.stringify({ stadiumId, zoneId, customDestination }),
@@ -23,6 +26,7 @@ export async function createInvoice(stadiumId, zoneId, rawInitData, customDestin
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
+    console.error('[API] createInvoice FAILED:', res.status, error);
     throw new Error(error.error || `HTTP ${res.status}`);
   }
 
@@ -71,12 +75,16 @@ export async function cancelRide(rawInitData) {
  * Fetch past ride history.
  */
 export async function getRideHistory(rawInitData) {
-  const res = await fetch(`${API_URL}/api/ride-history`, {
+  const url = `${API_URL}/api/ride-history`;
+  console.log('[API] getRideHistory →', url, { hasAuth: !!rawInitData });
+
+  const res = await fetch(url, {
     headers: getHeaders(rawInitData),
   });
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
+    console.error('[API] getRideHistory FAILED:', res.status, error);
     throw new Error(error.error || `HTTP ${res.status}`);
   }
 

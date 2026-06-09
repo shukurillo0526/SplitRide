@@ -6,7 +6,7 @@ import { BOT_TOKEN } from './config.js';
  * Throws on invalid data.
  */
 export function validateInitData(initDataRaw) {
-  validate(initDataRaw, BOT_TOKEN);
+  validate(initDataRaw, BOT_TOKEN, { expiresIn: 0 });
   return parse(initDataRaw);
 }
 
