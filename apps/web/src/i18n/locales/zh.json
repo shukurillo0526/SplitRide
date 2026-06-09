@@ -26,5 +26,23 @@
   "blacklisted": "账户已暂停",
   "blacklisted_message": "因缺席举报，您被暂停{hours}小时",
   "already_in_queue": "您已在等待队列中",
-  "error": "出了点问题"
+  "error": "出了点问题",
+  "select_stadium_title": "选择你的体育场",
+  "insufficient_stars": "你需要 {amount} ⭐ 才能寻找拼车伙伴",
+  "how_to_get_stars": "前往设置 → Telegram Stars → 充值",
+  "payment_pending": "正在处理付款...",
+  "payment_cancelled": "付款已取消",
+  "tab_ride": "拼车",
+  "tab_history": "我的拼车",
+  "history_empty": "暂无记录",
+  "history_empty_subtitle": "您的拼车历史将在第一次匹配成功后显示在此处",
+  "custom_destination": "其他 — 输入您的目的地",
+  "custom_destination_placeholder": "请输入目的地...",
+  "cancel_ride": "取消并退款",
+  "cancel_confirm": "您的 {amount} ⭐ 将被退还。确定取消吗？",
+  "cancel_success": "拼车已取消。{amount} ⭐ 已退还。",
+  "cancel_yes": "是的，取消",
+  "cancel_no": "继续等待",
+  "got_it": "知道了"
 }
+

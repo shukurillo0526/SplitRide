@@ -1,4 +1,5 @@
 import { t } from '../i18n/index.js';
+import SplitRideLogo from './SplitRideLogo.jsx';
 
 export default function MatchButton({ onPress, disabled, loading }) {
   return (
@@ -8,14 +9,13 @@ export default function MatchButton({ onPress, disabled, loading }) {
         onClick={onPress}
         disabled={disabled || loading}
         className={`
-          w-full py-5 px-6 rounded-2xl text-lg font-bold
+          w-full py-4.5 px-6 rounded-2xl text-lg font-bold
           transition-all duration-300 ease-out
           flex items-center justify-center gap-3
           ${disabled || loading
-            ? 'cta-gradient opacity-50 cursor-not-allowed'
-            : 'cta-gradient animate-glow cursor-pointer active:scale-[0.98]'
+            ? 'bg-white/[0.06] border border-white/[0.06] cursor-not-allowed text-tg-hint'
+            : 'cta-gradient animate-glow cursor-pointer active:scale-[0.98] text-white shadow-lg'
           }
-          text-white shadow-lg
         `}
       >
         {loading ? (
@@ -28,15 +28,15 @@ export default function MatchButton({ onPress, disabled, loading }) {
           </>
         ) : (
           <>
-            <span className="text-2xl">🚗</span>
+            <SplitRideLogo size={26} />
             <span>{t('find_match')}</span>
-            <span className="ml-1 text-base opacity-80">— {t('stars_fee')}</span>
+            <span className="ml-1 text-sm opacity-70 font-semibold">— {t('stars_fee')}</span>
           </>
         )}
       </button>
 
       {!disabled && !loading && (
-        <p className="text-center text-xs text-tg-hint mt-3 animate-fade-in">
+        <p className="text-center text-[11px] text-tg-hint mt-3 animate-fade-in">
           {t('powered_by')}
         </p>
       )}

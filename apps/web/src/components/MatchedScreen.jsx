@@ -1,4 +1,5 @@
 import { t } from '../i18n/index.js';
+import SplitRideLogo from './SplitRideLogo.jsx';
 
 export default function MatchedScreen({ matchData }) {
   const { topicLink, stadiumName, zoneName } = matchData || {};
@@ -32,7 +33,9 @@ export default function MatchedScreen({ matchData }) {
       {/* Route badge */}
       {stadiumName && zoneName && (
         <div className="glass-light rounded-2xl px-5 py-3 mb-8 animate-slide-up flex items-center gap-3">
-          <span className="text-xl">🚗</span>
+          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <SplitRideLogo size={20} />
+          </div>
           <span className="text-sm font-semibold text-tg-text">
             {stadiumName} → {zoneName}
           </span>

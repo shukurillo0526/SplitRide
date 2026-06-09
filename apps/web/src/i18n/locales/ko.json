@@ -26,5 +26,23 @@
   "blacklisted": "계정 정지됨",
   "blacklisted_message": "불참 신고로 {hours}시간 동안 정지되었습니다",
   "already_in_queue": "이미 대기열에서 기다리고 있습니다",
-  "error": "문제가 발생했습니다"
+  "error": "문제가 발생했습니다",
+  "select_stadium_title": "경기장을 선택하세요",
+  "insufficient_stars": "매칭을 찾으려면 {amount} ⭐이 필요합니다",
+  "how_to_get_stars": "설정 → Telegram Stars → 충전으로 이동하세요",
+  "payment_pending": "결제 처리 중...",
+  "payment_cancelled": "결제가 취소되었습니다",
+  "tab_ride": "라이드",
+  "tab_history": "내 기록",
+  "history_empty": "아직 기록이 없습니다",
+  "history_empty_subtitle": "첫 번째 매칭이 완료되면 기록이 여기에 표시됩니다",
+  "custom_destination": "기타 — 목적지 입력",
+  "custom_destination_placeholder": "목적지를 입력하세요...",
+  "cancel_ride": "취소 및 환불",
+  "cancel_confirm": "{amount} ⭐이 환불됩니다. 취소하시겠습니까?",
+  "cancel_success": "라이드가 취소되었습니다. {amount} ⭐이 환불되었습니다.",
+  "cancel_yes": "네, 취소합니다",
+  "cancel_no": "계속 대기",
+  "got_it": "확인"
 }
+

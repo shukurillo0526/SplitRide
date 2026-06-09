@@ -243,3 +243,24 @@ export async function getMatchStatus(userId) {
   if (!raw) return null;
   return typeof raw === 'string' ? JSON.parse(raw) : raw;
 }
+
+/**
+ * Push a ride history entry to the user's history list.
+ */
+export async function pushRideHistory(userId, rideData) {
+  const r = getRedis();
+  const key = `history:${userId}`;
+  await r.lpush(key, JSON.stringify(rideData));
+  await r.ltrim(key, 0, 49); // Keep last 50 rides
+  await r.expire(key, 86400 * 30); // Keep history for 30 days
+}
+
+/**
+ * Get user's ride history list.
+ */
+export async function getRideHistory(userId) {
+  const r = getRedis();
+  const raw = await r.lrange(`history:${userId}`, 0, -1);
+  return raw.map((entry) => (typeof entry === 'string' ? JSON.parse(entry) : entry));
+}
+

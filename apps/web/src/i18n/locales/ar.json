@@ -26,5 +26,23 @@
   "blacklisted": "الحساب موقوف",
   "blacklisted_message": "أنت موقوف لمدة {hours} ساعة بسبب بلاغ غياب",
   "already_in_queue": "أنت بالفعل في قائمة الانتظار",
-  "error": "حدث خطأ ما"
+  "error": "حدث خطأ ما",
+  "select_stadium_title": "اختر ملعبك",
+  "insufficient_stars": "تحتاج إلى {amount} ⭐ للبحث عن مجموعة",
+  "how_to_get_stars": "اذهب إلى الإعدادات ← Telegram Stars ← شحن",
+  "payment_pending": "جاري معالجة الدفع...",
+  "payment_cancelled": "تم إلغاء الدفع",
+  "tab_ride": "الرحلة",
+  "tab_history": "رحلاتي",
+  "history_empty": "لا توجد رحلات بعد",
+  "history_empty_subtitle": "ستظهر محفوظات رحلاتك هنا بعد أول مطابقة لك",
+  "custom_destination": "آخر — اكتب وجهتك",
+  "custom_destination_placeholder": "أدخل وجهتك...",
+  "cancel_ride": "إلغاء واسترداد",
+  "cancel_confirm": "سيتم استرداد {amount} ⭐ الخاصة بك. هل تريد الإلغاء؟",
+  "cancel_success": "تم إلغاء الرحلة. تم استرداد {amount} ⭐.",
+  "cancel_yes": "نعم، إلغاء",
+  "cancel_no": "استمر في الانتظار",
+  "got_it": "حسناً"
 }
+

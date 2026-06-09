@@ -8,10 +8,11 @@ import {
   hasReported,
   markReported,
   blacklistUser,
+  pushRideHistory,
 } from './redis.js';
 import { refundUser } from './payments.js';
 import { t, resolveLanguage } from './i18n.js';
-import { MATCH_FEE_STARS, DISPATCH_GROUP_ID } from './config.js';
+import { MATCH_FEE_STARS, DISPATCH_GROUP_ID, getStadium, getZone } from './config.js';
 
 /**
  * Register all dispute-related callback query handlers on the bot.
@@ -115,6 +116,12 @@ export function registerDisputeHandlers(bot) {
       const matchKey = await getTopicMatchKey(topicId);
       const chargeIds = matchKey ? await getAllChargeIds(matchKey) : {};
 
+      const parts = matchKey ? matchKey.split(':') : [];
+      const stadiumId = parts[1] || '';
+      const zoneId = parts[2] || '';
+      const stadium = stadiumId ? getStadium(stadiumId) : null;
+      const zone = (stadiumId && zoneId) ? getZone(stadiumId, zoneId) : null;
+
       // Refund all victims (everyone except the no-show)
       const victims = members.filter((m) => m.userId !== reportedUserId);
 
@@ -131,6 +138,22 @@ export function registerDisputeHandlers(bot) {
                 t(victimLang, 'refund_issued', { amount: MATCH_FEE_STARS.toString() })
               );
             } catch { /* ignore DM failures */ }
+
+            const userZoneName = zoneId === 'custom' && victim.customDestination ? victim.customDestination : (zone ? zone.name : '');
+            await pushRideHistory(victim.userId, {
+              rideId: `dispute_refund_${topicId}`,
+              stadiumId,
+              stadiumName: stadium ? stadium.name : '',
+              zoneId,
+              zoneName: userZoneName,
+              status: 'refunded',
+              createdAt: Date.now(),
+              crew: [],
+              topicLink: '',
+              refund: true,
+              refundAmount: MATCH_FEE_STARS,
+              notes: 'Refunded due to no-show dispute consensus.',
+            });
           }
         }
       }

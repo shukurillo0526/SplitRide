@@ -25,7 +25,7 @@ body {
 
 /* ─── Scrollbar ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 
 ::-webkit-scrollbar-track {
@@ -37,8 +37,10 @@ body {
   border-radius: 4px;
 }
 
-/* ─── Glassmorphism ────────────────────────────────────────────────────────── */
+/* ─── Component Styles ─────────────────────────────────────────────────────── */
 @layer components {
+
+  /* ── Glassmorphism ────────────────────────────────────────────────────── */
   .glass {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(16px);
@@ -63,57 +65,242 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
-  /* ─── Custom Select ───────────────────────────────────────────────────── */
-  .select-wrapper {
-    position: relative;
-  }
-
-  .select-wrapper::after {
-    content: '▾';
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    color: var(--tg-theme-hint-color, #7a7a7a);
-    font-size: 14px;
-  }
-
-  .custom-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+  /* ── Stadium Cards ───────────────────────────────────────────────────── */
+  .stadium-selector {
     width: 100%;
-    padding: 14px 40px 14px 44px;
+  }
+
+  .stadium-search {
+    width: 100%;
+    padding: 11px 12px 11px 36px;
     border-radius: 14px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
     font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    transition: all 0.3s ease;
     background-color: var(--tg-theme-secondary-bg-color, #1a1a1a);
     color: var(--tg-theme-text-color, #ffffff);
     border: 1.5px solid rgba(255, 255, 255, 0.06);
     outline: none;
+    transition: all 0.3s ease;
   }
 
-  .custom-select:focus {
+  .stadium-search::placeholder {
+    color: var(--tg-theme-hint-color, #7a7a7a);
+  }
+
+  .stadium-search:focus {
     border-color: var(--tg-theme-button-color, #5eaaef);
-    box-shadow: 0 0 0 3px rgba(94, 170, 239, 0.15);
+    box-shadow: 0 0 0 3px rgba(94, 170, 239, 0.1);
   }
 
-  .custom-select:disabled {
+  .stadium-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+
+  .stadium-card {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--tg-theme-secondary-bg-color, #1a1a1a);
+    border: 1.5px solid rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .stadium-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .stadium-card:active {
+    transform: scale(0.985);
+  }
+
+  .stadium-card:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+    transform: none;
   }
 
-  .custom-select option {
-    background-color: var(--tg-theme-secondary-bg-color, #1a1a1a);
+  .stadium-card--selected {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.08);
+  }
+
+  .stadium-card--selected:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.35);
+  }
+
+  .stadium-card-flag {
+    width: 24px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .stadium-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+
+  /* ── Zone Pills ──────────────────────────────────────────────────────── */
+  .zone-pills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .zone-pill {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--tg-theme-secondary-bg-color, #1a1a1a);
+    border: 1.5px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .zone-pill:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .zone-pill:active {
+    transform: scale(0.96);
+  }
+
+  .zone-pill:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .zone-pill--selected {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.35);
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.1);
+  }
+
+  .zone-pill--selected:hover {
+    background: rgba(16, 185, 129, 0.15);
+  }
+
+  .zone-pill-icon {
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .zone-pill-label {
+    font-size: 13px;
+    font-weight: 600;
     color: var(--tg-theme-text-color, #ffffff);
-    padding: 12px;
+    white-space: nowrap;
   }
 
-  /* ─── CTA Button Gradient ─────────────────────────────────────────────── */
+  .zone-pill--selected .zone-pill-label {
+    color: #34d399;
+  }
+
+  .zone-pill-check {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 2px;
+  }
+
+  /* ── Tab Bar ─────────────────────────────────────────────────────────── */
+  .tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 16px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    z-index: 40;
+  }
+
+  .tab-bar-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tab-bar-item:active {
+    transform: scale(0.92);
+  }
+
+  .tab-bar-item--active {
+    background: rgba(16, 185, 129, 0.08);
+  }
+
+  .tab-bar-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+  }
+
+  .tab-bar-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: color 0.2s ease;
+    letter-spacing: 0.02em;
+  }
+
+  .tab-bar-label--active {
+    color: #10b981;
+  }
+
+  .tab-bar-indicator {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    border-radius: 1px;
+    background: #10b981;
+  }
+
+  /* ── CTA Button Gradient ─────────────────────────────────────────────── */
   .cta-gradient {
     background: linear-gradient(135deg, #10b981, #059669, #047857);
     background-size: 200% 200%;
@@ -138,7 +325,7 @@ body {
     cursor: not-allowed;
   }
 
-  /* ─── Progress Bar ────────────────────────────────────────────────────── */
+  /* ── Progress Bar ────────────────────────────────────────────────────── */
   .progress-bar {
     background: rgba(255, 255, 255, 0.06);
     border-radius: 999px;
@@ -151,7 +338,7 @@ body {
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* ─── Pulsing Dots ────────────────────────────────────────────────────── */
+  /* ── Pulsing Dots ────────────────────────────────────────────────────── */
   .dot-pulse {
     display: flex;
     gap: 6px;
@@ -169,9 +356,33 @@ body {
 
   .dot-pulse span:nth-child(2) { animation-delay: 0.16s; }
   .dot-pulse span:nth-child(3) { animation-delay: 0.32s; }
+
+  /* ── Custom Destination Input ────────────────────────────────────────── */
+  .custom-dest-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--tg-theme-text-color, #ffffff);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.25s ease;
+  }
+
+  .custom-dest-input::placeholder {
+    color: var(--tg-theme-hint-color, #6b7280);
+  }
+
+  .custom-dest-input:focus {
+    outline: none;
+    border-color: #10b981;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+  }
 }
 
-/* ─── Additional Keyframes ──────────────────────────────────────────────── */
+/* ─── Keyframes ────────────────────────────────────────────────────────────── */
 @keyframes gradient-shift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }

@@ -26,5 +26,23 @@
   "blacklisted": "Konto gesperrt",
   "blacklisted_message": "Du bist für {hours} Stunden gesperrt wegen Nichterscheinen",
   "already_in_queue": "Du bist bereits in einer Warteschlange",
-  "error": "Etwas ist schiefgelaufen"
+  "error": "Etwas ist schiefgelaufen",
+  "select_stadium_title": "Wähle dein Stadion",
+  "insufficient_stars": "Du benötigst {amount} ⭐, um eine Gruppe zu suchen",
+  "how_to_get_stars": "Gehe zu Einstellungen → Telegram Stars → Aufladen",
+  "payment_pending": "Zahlung wird verarbeitet...",
+  "payment_cancelled": "Zahlung abgebrochen",
+  "tab_ride": "Fahrt",
+  "tab_history": "Meine Fahrten",
+  "history_empty": "Noch keine Fahrten",
+  "history_empty_subtitle": "Dein Fahrtverlauf wird hier nach deiner ersten Gruppe angezeigt",
+  "custom_destination": "Andere — Zieladresse eingeben",
+  "custom_destination_placeholder": "Gib deine Zieladresse ein...",
+  "cancel_ride": "Abbrechen & Erstatten",
+  "cancel_confirm": "Deine {amount} ⭐ werden erstattet. Abbrechen?",
+  "cancel_success": "Fahrt abgebrochen. {amount} ⭐ erstattet.",
+  "cancel_yes": "Ja, abbrechen",
+  "cancel_no": "Weiter warten",
+  "got_it": "Verstanden"
 }
+

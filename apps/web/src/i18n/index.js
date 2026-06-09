@@ -7,11 +7,15 @@ import ja from './locales/ja.json';
 import ko from './locales/ko.json';
 import zh from './locales/zh.json';
 import ar from './locales/ar.json';
+import ru from './locales/ru.json';
+import uz from './locales/uz.json';
 
-const locales = { en, es, fr, pt, de, ja, ko, zh, ar };
+const locales = { en, es, fr, pt, de, ja, ko, zh, ar, ru, uz };
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
+  { code: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺' },
+  { code: 'uz', name: 'Uzbek', nativeName: "O'zbekcha", flag: '🇺🇿' },
   { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
   { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷' },
   { code: 'pt', name: 'Portuguese', nativeName: 'Português', flag: '🇧🇷' },

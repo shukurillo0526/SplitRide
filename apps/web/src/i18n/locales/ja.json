@@ -26,5 +26,23 @@
   "blacklisted": "アカウント停止中",
   "blacklisted_message": "不参加報告により{hours}時間停止中です",
   "already_in_queue": "すでにキューで待機中です",
-  "error": "エラーが発生しました"
+  "error": "エラーが発生しました",
+  "select_stadium_title": "スタジアムを選択してください",
+  "insufficient_stars": "マッチを探すには {amount} ⭐ 必要です",
+  "how_to_get_stars": "設定 → Telegram Stars → チャージ に進んでください",
+  "payment_pending": "支払い処理中...",
+  "payment_cancelled": "支払いがキャンセルされました",
+  "tab_ride": "ライド",
+  "tab_history": "履歴",
+  "history_empty": "まだ履歴がありません",
+  "history_empty_subtitle": "最初のマッチングの後に履歴が表示されます",
+  "custom_destination": "その他 — 目的地を入力",
+  "custom_destination_placeholder": "目的地を入力してください...",
+  "cancel_ride": "キャンセルして返金",
+  "cancel_confirm": "{amount} ⭐が返金されます。キャンセルしますか？",
+  "cancel_success": "ライドがキャンセルされました。{amount} ⭐が返金されました。",
+  "cancel_yes": "はい、キャンセルします",
+  "cancel_no": "待機を続ける",
+  "got_it": "了解"
 }
+

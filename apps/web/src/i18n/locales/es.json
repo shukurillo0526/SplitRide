@@ -26,5 +26,22 @@
   "blacklisted": "Cuenta suspendida",
   "blacklisted_message": "Estás suspendido por {hours} horas debido a un reporte de ausencia",
   "already_in_queue": "Ya estás esperando en una cola",
-  "error": "Algo salió mal"
+  "error": "Algo salió mal",
+  "select_stadium_title": "Elige tu estadio",
+  "insufficient_stars": "Necesitas {amount} ⭐ para buscar grupo",
+  "how_to_get_stars": "Ve a Ajustes → Telegram Stars → Recargar",
+  "payment_pending": "Procesando pago...",
+  "payment_cancelled": "Pago cancelado",
+  "tab_ride": "Viaje",
+  "tab_history": "Mis Viajes",
+  "history_empty": "Aún no hay viajes",
+  "history_empty_subtitle": "Tu historial aparecerá aquí después de tu primer viaje",
+  "custom_destination": "Otro — Escribe tu destino",
+  "custom_destination_placeholder": "Ingresa tu destino...",
+  "cancel_ride": "Cancelar y Reembolsar",
+  "cancel_confirm": "Se te devolverán {amount} ⭐. ¿Cancelar?",
+  "cancel_success": "Viaje cancelado. {amount} ⭐ reembolsadas.",
+  "cancel_yes": "Sí, cancelar",
+  "cancel_no": "Seguir esperando",
+  "got_it": "Entendido"
 }

@@ -242,5 +242,9 @@ export function getStadium(stadiumId) {
 
 export function getZones(stadiumId) {
   const stadium = getStadium(stadiumId);
-  return stadium ? stadium.zones : [];
+  if (!stadium) return [];
+  return [
+    ...stadium.zones,
+    { id: 'custom', name: 'Other' },
+  ];
 }

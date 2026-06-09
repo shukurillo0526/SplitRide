@@ -2,9 +2,20 @@ import express from 'express';
 import cors from 'cors';
 import { bot, webhookCallback } from './bot.js';
 import { authMiddleware } from './validators.js';
-import { createMatchInvoiceLink } from './payments.js';
+import { createMatchInvoiceLink, refundUser } from './payments.js';
 import { resolveLanguage } from './i18n.js';
-import { getQueueLength, getMatchStatus, getUserQueue, isBlacklisted, getBlacklistTTL } from './redis.js';
+import {
+  getQueueLength,
+  getMatchStatus,
+  getUserQueue,
+  isBlacklisted,
+  getBlacklistTTL,
+  getRideHistory,
+  pushRideHistory,
+  removeFromQueue,
+  getChargeId,
+  storeMatchStatus,
+} from './redis.js';
 import {
   PORT,
   WEBHOOK_URL,
@@ -13,6 +24,7 @@ import {
   MATCH_FEE_STARS,
   getStadium,
   getZone,
+  getMatchKey,
 } from './config.js';
 
 const app = express();
@@ -139,6 +151,89 @@ app.get('/api/match-status', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('[API] match-status error:', error);
     res.status(500).json({ error: 'Failed to check match status' });
+  }
+});
+
+// ─── API: Ride History ───────────────────────────────────────────────────────
+app.get('/api/ride-history', authMiddleware, async (req, res) => {
+  try {
+    const user = req.telegramUser;
+    const history = await getRideHistory(user.id);
+    res.json({ history });
+  } catch (error) {
+    console.error('[API] ride-history error:', error);
+    res.status(500).json({ error: 'Failed to retrieve ride history' });
+  }
+});
+
+// ─── API: Cancel Ride & Refund ────────────────────────────────────────────────
+app.post('/api/cancel-ride', authMiddleware, async (req, res) => {
+  try {
+    const user = req.telegramUser;
+    
+    // Check if user is currently in a queue
+    const userQueue = await getUserQueue(user.id);
+    if (!userQueue) {
+      return res.status(400).json({ error: 'You are not currently waiting in a queue.' });
+    }
+
+    const [stadiumId, zoneId] = userQueue.split(':');
+    const stadium = getStadium(stadiumId);
+    const zone = getZone(stadiumId, zoneId);
+
+    if (!stadium || !zone) {
+      return res.status(400).json({ error: 'Invalid stadium or zone.' });
+    }
+
+    const matchKey = getMatchKey(stadiumId, zoneId);
+    const chargeId = await getChargeId(user.id, matchKey);
+
+    if (!chargeId) {
+      return res.status(404).json({ error: 'Payment record not found. Cannot refund.' });
+    }
+
+    // Refund payment via Stars Bot API
+    const refunded = await refundUser(bot, user.id, chargeId);
+    if (!refunded) {
+      return res.status(500).json({ error: 'Failed to process refund.' });
+    }
+
+    // Retrieve the user queue entry so we can preserve customDestination if any
+    const queueMembers = await getQueueMembers(stadiumId, zoneId);
+    const memberEntry = queueMembers.find(m => m.userId === user.id);
+    const customDestination = memberEntry?.customDestination || '';
+
+    // Remove user from the queue in Redis
+    await removeFromQueue(stadiumId, zoneId, user.id);
+
+    // Update match status for immediate frontend polling stop
+    await storeMatchStatus(user.id, {
+      matched: false,
+      timedOut: true,
+      refunded: true,
+      cancelled: true,
+    });
+
+    // Save cancellation in history
+    const userZoneName = zoneId === 'custom' && customDestination ? customDestination : zone.name;
+    await pushRideHistory(user.id, {
+      rideId: `cancelled_${Date.now()}`,
+      stadiumId,
+      stadiumName: stadium.name,
+      zoneId,
+      zoneName: userZoneName,
+      status: 'cancelled',
+      createdAt: Date.now(),
+      crew: [],
+      topicLink: '',
+      refund: true,
+      refundAmount: MATCH_FEE_STARS,
+    });
+
+    res.json({ success: true, refunded: true, amount: MATCH_FEE_STARS });
+  } catch (error) {
+    console.error('[API] cancel-ride error:', error);
+    res.status(500).json({ error: 'Failed to cancel ride.' });
   }
 });
 

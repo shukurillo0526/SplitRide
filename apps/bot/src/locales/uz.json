@@ -1,0 +1,18 @@
+{
+  "welcome": "🏟️ SPLITRIDE ga xush kelibsiz! ⚽\n\nJahon chempionatidan qaytish safarini boshqa ishqibozlar bilan bo'lishing.\n\nIlovani ochish va hamroh topish uchun quyidagi tugmani bosing!",
+  "payment_title": "SPLITRIDE — Hamroh topish",
+  "payment_description": "{stadium} dan {zone} tomonga ketayotgan 3 ishqiboz bilan guruh. Safarni bo'lishing!",
+  "payment_success": "✅ To'lov qabul qilindi! Siz navbatdasiz: {stadium} → {zone}.\n\nYana {remaining} ishqiboz kutilmoqda...",
+  "match_found": "🎉 Safar guruhingiz tayyor!\n\n🚗 {stadium} → {zone}\n\nGuruhga qo'shiling:",
+  "topic_welcome": "🚗 SAFAR GURUHI: {stadium} → {zone}\n\n👥 4 kishilik guruhingiz to'ldi!\n\n📍 KEYINGI QADAMLAR:\n1. 📎 tugmasini bosing → 📍 Joylashuv → Jonli joylashuvni ulashing (1 soat)\n2. Belgilangan chiqish joyida uchrashing\n3. Bitta kishi taksi chaqiradi — xarajatni 4 ga bo'ling\n\n⚠️ Agar kimdir kelmasa, quyidagi tugmani bosing.",
+  "report_button": "🚨 Kelmay qolgan haqida xabar / Qaytarish",
+  "report_prompt": "Kim kelmadi? Foydalanuvchini tanlang:",
+  "report_received": "✅ Shikoyat qabul qilindi. 2+ ishtirokchi tasdiqlasa, qaytarish avtomatik amalga oshiriladi.",
+  "report_already": "Siz bu safar bo'yicha allaqachon shikoyat yuborgansiz.",
+  "refund_issued": "💰 {amount} ⭐ hisobingizga qaytarildi.",
+  "user_blacklisted": "🚫 Foydalanuvchi kelmay qolganligi uchun 3 kunga to'xtatildi.",
+  "blacklisted_error": "⛔ Kelmay qolganlik sabab siz hozirda to'xtatilgansiz. To'xtatilish {hours} soatdan keyin tugaydi.",
+  "queue_timeout": "⏰ Yetarli hamroh topilmadi. {amount} ⭐ qaytarildi.",
+  "open_app": "SPLITRIDE ni ochish",
+  "error_generic": "Xatolik yuz berdi. Qaytadan urinib ko'ring."
+}

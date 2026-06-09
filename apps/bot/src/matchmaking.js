@@ -17,6 +17,7 @@ import {
   storeMatchStatus,
   removeFromQueue,
   getQueueLength,
+  pushRideHistory,
 } from './redis.js';
 import { refundUser } from './payments.js';
 import { t } from './i18n.js';
@@ -56,7 +57,7 @@ export async function processMatch(bot, stadiumId, zoneId) {
 
   try {
     // 1. Create forum topic in the Dispatch Supergroup
-    const topicName = `🚗 ${stadium.name} → ${zone.name}`;
+    const topicName = zoneId === 'custom' ? `🚗 ${stadium.name} → Other Dest.` : `🚗 ${stadium.name} → ${zone.name}`;
     const topic = await bot.api.createForumTopic(DISPATCH_GROUP_ID, topicName);
     const topicId = topic.message_thread_id;
 
@@ -71,10 +72,17 @@ export async function processMatch(bot, stadiumId, zoneId) {
     );
 
     // Send welcome message in the topic (using first member's lang for topic, but it's a group)
-    const welcomeText = t('en', 'topic_welcome', {
+    let welcomeText = t('en', 'topic_welcome', {
       stadium: stadium.name,
-      zone: zone.name,
+      zone: zoneId === 'custom' ? 'Other Destination' : zone.name,
     });
+
+    if (zoneId === 'custom') {
+      const destList = members
+        .map((m) => `• ${m.firstName}: ${m.customDestination || 'Not specified'}`)
+        .join('\n');
+      welcomeText += `\n\n📍 CUSTOM DESTINATIONS:\n${destList}`;
+    }
 
     const pinnedMsg = await bot.api.sendMessage(DISPATCH_GROUP_ID, welcomeText, {
       message_thread_id: topicId,
@@ -94,10 +102,11 @@ export async function processMatch(bot, stadiumId, zoneId) {
     // 4. DM each user with the match notification + link
     for (const member of members) {
       const lang = member.lang || 'en';
+      const userZoneName = zoneId === 'custom' && member.customDestination ? member.customDestination : zone.name;
 
       const matchText = t(lang, 'match_found', {
         stadium: stadium.name,
-        zone: zone.name,
+        zone: userZoneName,
       });
 
       const dmKeyboard = new InlineKeyboard().url('🚗 Join Ride Group', topicLink);
@@ -115,9 +124,31 @@ export async function processMatch(bot, stadiumId, zoneId) {
         matched: true,
         topicLink,
         stadiumName: stadium.name,
-        zoneName: zone.name,
+        zoneName: userZoneName,
         topicId,
         matchedAt: Date.now(),
+      });
+
+      // Push to ride history
+      const crew = members
+        .filter((m) => m.userId !== member.userId)
+        .map((m) => ({
+          userId: m.userId,
+          firstName: m.firstName,
+          username: m.username,
+        }));
+
+      await pushRideHistory(member.userId, {
+        rideId: `match_${topicId}`,
+        stadiumId,
+        stadiumName: stadium.name,
+        zoneId,
+        zoneName: userZoneName,
+        status: 'matched',
+        createdAt: Date.now(),
+        crew,
+        topicLink,
+        refund: false,
       });
     }
 
@@ -158,6 +189,9 @@ export function setupQueueTimeout(bot, stadiumId, zoneId) {
 
     if (members.length === 0) return;
 
+    const stadium = getStadium(stadiumId);
+    const zone = getZone(stadiumId, zoneId);
+
     console.log(`[Timeout] Queue ${matchKey} timed out with ${members.length} members`);
 
     const chargeIds = await getAllChargeIds(matchKey);
@@ -183,6 +217,22 @@ export function setupQueueTimeout(bot, stadiumId, zoneId) {
         matched: false,
         timedOut: true,
         refunded: true,
+      });
+
+      // Push to ride history
+      const userZoneName = zoneId === 'custom' && member.customDestination ? member.customDestination : (zone ? zone.name : '');
+      await pushRideHistory(member.userId, {
+        rideId: `timeout_${Date.now()}`,
+        stadiumId,
+        stadiumName: stadium ? stadium.name : '',
+        zoneId,
+        zoneName: userZoneName,
+        status: 'refunded',
+        createdAt: Date.now(),
+        crew: [],
+        topicLink: '',
+        refund: true,
+        refundAmount: MATCH_FEE_STARS,
       });
 
       await removeFromQueue(stadiumId, zoneId, member.userId);

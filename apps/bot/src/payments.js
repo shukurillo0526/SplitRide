@@ -7,7 +7,7 @@ import { t, resolveLanguage } from './i18n.js';
  * Create a Stars invoice link for the Mini App to open.
  * Returns the invoice URL string.
  */
-export async function createMatchInvoiceLink(bot, userId, stadiumId, zoneId, lang) {
+export async function createMatchInvoiceLink(bot, userId, stadiumId, zoneId, lang, customDestination = '') {
   const stadium = getStadium(stadiumId);
   const zone = getZone(stadiumId, zoneId);
 
@@ -19,12 +19,13 @@ export async function createMatchInvoiceLink(bot, userId, stadiumId, zoneId, lan
     stadiumId,
     zoneId,
     userId,
+    customDestination,
     timestamp: Date.now(),
   });
 
   const description = t(lang, 'payment_description', {
     stadium: stadium.name,
-    zone: zone.name,
+    zone: zoneId === 'custom' && customDestination ? customDestination : zone.name,
   });
 
   const invoiceLink = await bot.api.createInvoiceLink(
@@ -58,7 +59,7 @@ export async function processPayment(bot, ctx) {
     return;
   }
 
-  const { stadiumId, zoneId } = payloadData;
+  const { stadiumId, zoneId, customDestination } = payloadData;
   const stadium = getStadium(stadiumId);
   const zone = getZone(stadiumId, zoneId);
 
@@ -94,7 +95,9 @@ export async function processPayment(bot, ctx) {
     firstName: ctx.from.first_name || 'Fan',
     username: ctx.from.username || '',
     lang,
+    customDestination: customDestination || '',
   };
+
 
   const queueLength = await pushToQueue(stadiumId, zoneId, userData);
 
@@ -106,10 +109,11 @@ export async function processPayment(bot, ctx) {
   } else {
     // Notify user they're in queue
     const remaining = 4 - queueLength;
+    const displayZoneName = zoneId === 'custom' && customDestination ? customDestination : zone.name;
     await ctx.reply(
       t(lang, 'payment_success', {
         stadium: stadium.name,
-        zone: zone.name,
+        zone: displayZoneName,
         remaining: remaining.toString(),
       })
     );

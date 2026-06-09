@@ -256,6 +256,9 @@ export function getStadium(stadiumId) {
 export function getZone(stadiumId, zoneId) {
   const stadium = getStadium(stadiumId);
   if (!stadium) return null;
+  if (zoneId === 'custom') {
+    return { id: 'custom', name: 'Other destination' };
+  }
   return stadium.zones.find((z) => z.id === zoneId) || null;
 }
 

@@ -26,5 +26,23 @@
   "blacklisted": "Conta suspensa",
   "blacklisted_message": "Você está suspenso por {hours} horas devido a uma denúncia de ausência",
   "already_in_queue": "Você já está esperando em uma fila",
-  "error": "Algo deu errado"
+  "error": "Algo deu errado",
+  "select_stadium_title": "Escolha seu estádio",
+  "insufficient_stars": "Você precisa de {amount} ⭐ para buscar grupo",
+  "how_to_get_stars": "Vá em Configurações → Telegram Stars → Recarregar",
+  "payment_pending": "Processando pagamento...",
+  "payment_cancelled": "Pagamento cancelado",
+  "tab_ride": "Corrida",
+  "tab_history": "Minhas Corridas",
+  "history_empty": "Nenhuma corrida ainda",
+  "history_empty_subtitle": "Seu histórico aparecerá aqui após sua primeira corrida",
+  "custom_destination": "Outro — Digite seu destino",
+  "custom_destination_placeholder": "Digite seu destino...",
+  "cancel_ride": "Cancelar e Reembolsar",
+  "cancel_confirm": "Suas {amount} ⭐ serão reembolsadas. Cancelar?",
+  "cancel_success": "Corrida cancelada. {amount} ⭐ reembolsadas.",
+  "cancel_yes": "Sim, cancelar",
+  "cancel_no": "Continuar esperando",
+  "got_it": "Entendido"
 }
+
