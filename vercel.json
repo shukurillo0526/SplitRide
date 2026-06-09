@@ -1,6 +1,0 @@
-{
-  "buildCommand": "npm run build:web",
-  "outputDirectory": "apps/web/dist",
-  "installCommand": "npm install --no-audit --no-fund",
-  "framework": "vite"
-}
