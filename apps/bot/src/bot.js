@@ -1,5 +1,5 @@
 import { Bot, InlineKeyboard, webhookCallback } from 'grammy';
-import { BOT_TOKEN, FRONTEND_URL } from './config.js';
+import { BOT_TOKEN, FRONTEND_URL, DISPATCH_GROUP_ID } from './config.js';
 import { processPayment } from './payments.js';
 import { registerDisputeHandlers } from './disputes.js';
 import { t, resolveLanguage } from './i18n.js';
@@ -73,6 +73,42 @@ bot.on('message:successful_payment', async (ctx) => {
 
 // ─── Dispute Handlers ────────────────────────────────────────────────────────
 import { completeRide } from './lifecycle.js';
+
+// Handler for coordination: user arrived at gate
+bot.callbackQuery(/^arrived_gate:(.+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const topicId = ctx.match[1];
+  const firstName = ctx.from.first_name || 'A rider';
+  const usernameMention = ctx.from.username ? ` (@${ctx.from.username})` : '';
+
+  try {
+    await bot.api.sendMessage(
+      DISPATCH_GROUP_ID,
+      `📍 *Status Update:*\n\n👋 *${firstName}*${usernameMention} has arrived at the designated meeting gate! If you are also there, share your live location or send a message to let the crew know.`,
+      { message_thread_id: parseInt(topicId), parse_mode: 'Markdown' }
+    );
+  } catch (err) {
+    console.error('[Bot] Failed to post arrived_gate announcement:', err.message);
+  }
+});
+
+// Handler for coordination: user ordered ride
+bot.callbackQuery(/^ordered_ride:(.+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const topicId = ctx.match[1];
+  const firstName = ctx.from.first_name || 'A rider';
+  const usernameMention = ctx.from.username ? ` (@${ctx.from.username})` : '';
+
+  try {
+    await bot.api.sendMessage(
+      DISPATCH_GROUP_ID,
+      `🚕 *Ride Update:*\n\n*${firstName}*${usernameMention} has ordered the Uber/Lyft ride! Please prepare to split the cost (150 Stars value or cash equivalent) and meet them at the gate.`,
+      { message_thread_id: parseInt(topicId), parse_mode: 'Markdown' }
+    );
+  } catch (err) {
+    console.error('[Bot] Failed to post ordered_ride announcement:', err.message);
+  }
+});
 
 // Handler for manual ride completion via inline button in topic
 bot.callbackQuery(/^complete_ride:(.+)$/, async (ctx) => {

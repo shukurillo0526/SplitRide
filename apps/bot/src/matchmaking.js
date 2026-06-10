@@ -57,8 +57,13 @@ export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null
   console.log(`[Match] Creating group for ${stadium.name} → ${zone.name}:`, members.map((m) => m.userId));
 
   try {
+    const r = getRedis();
+    const counterKey = `topic_counter:${stadiumId}:${zoneId}`;
+    const tripNum = await r.incr(counterKey);
+
     // 1. Create forum topic in the Dispatch Supergroup
-    const topicName = zoneId === 'custom' ? `🚗 ${stadium.name} → Other Dest.` : `🚗 ${stadium.name} → ${zone.name}`;
+    const baseName = zoneId === 'custom' ? `${stadium.name} → Other Dest.` : `${stadium.name} → ${zone.name}`;
+    const topicName = `🚗 ${baseName} #${tripNum}`;
     const topic = await bot.api.createForumTopic(DISPATCH_GROUP_ID, topicName);
     const topicId = topic.message_thread_id;
 
@@ -66,11 +71,12 @@ export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null
     await storeTopicMembers(topicId, members);
     await storeTopicMatchKey(topicId, matchKey);
 
-    // 2. Build the pinned message with panic button
-    const panicKeyboard = new InlineKeyboard().text(
-      '🚨 Report No-Show / Refund',
-      `report_noshow:${topicId}`
-    );
+    // 2. Build the pinned message with coordination and panic buttons
+    const coordinationKeyboard = new InlineKeyboard()
+      .text('👋 Arrived at Gate', `arrived_gate:${topicId}`)
+      .text('🚕 Ordered Ride', `ordered_ride:${topicId}`)
+      .row()
+      .text('🚨 Report No-Show / Refund', `report_noshow:${topicId}`);
 
     // Send welcome message in the topic (using first member's lang for topic, but it's a group)
     let welcomeText = t('en', 'topic_welcome', {
@@ -87,7 +93,7 @@ export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null
 
     const pinnedMsg = await bot.api.sendMessage(DISPATCH_GROUP_ID, welcomeText, {
       message_thread_id: topicId,
-      reply_markup: panicKeyboard,
+      reply_markup: coordinationKeyboard,
     });
 
     // Pin the message
