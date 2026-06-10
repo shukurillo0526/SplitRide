@@ -22,6 +22,10 @@ export function getRedis() {
  */
 export async function pushToQueue(stadiumId, zoneId, userData) {
   const r = getRedis();
+  
+  // Clear any stale match/timeout status from previous runs
+  await r.del(`matchstatus:${userData.userId}`);
+
   const queueKey = `match:${stadiumId}:${zoneId}`;
   const deadlineKey = `queue_deadline:${stadiumId}:${zoneId}`;
   const userQueueKey = `userqueue:${userData.userId}`;
