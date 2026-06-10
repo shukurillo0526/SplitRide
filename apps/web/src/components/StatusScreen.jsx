@@ -52,11 +52,11 @@ export default function StatusScreen({ stadiumId, zoneId, rawInitData, onTimeout
         try {
           window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred('success');
         } catch { /* ignore */ }
-        onTimeout(); // return to selecting
       } catch (err) {
         console.error('[Cancel] Error:', err);
       } finally {
         setCancelling(false);
+        onTimeout(); // return to selecting screen
       }
     };
 

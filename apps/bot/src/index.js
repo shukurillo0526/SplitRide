@@ -238,7 +238,7 @@ app.get('/api/match-status', authMiddleware, async (req, res) => {
 
     res.json({
       matched: false,
-      timedOut: false,
+      timedOut: true,
       queuePosition: 0,
       queueNeeded: 4,
     });
