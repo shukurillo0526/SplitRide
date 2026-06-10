@@ -28,14 +28,16 @@ export async function createMatchInvoiceLink(bot, userId, stadiumId, zoneId, lan
     zone: zoneId === 'custom' && customDestination ? customDestination : zone.name,
   });
 
-  const invoiceLink = await bot.api.createInvoiceLink(
-    t(lang, 'payment_title'),                              // title
-    description,                                            // description
-    payload,                                                // payload
-    '',                                                     // provider_token (empty for Stars)
-    'XTR',                                                  // currency
-    [{ label: 'Match Fee', amount: MATCH_FEE_STARS }]       // prices
-  );
+  // Use raw API to omit provider_token entirely — Stars (XTR) requires
+  // it to be ABSENT, not empty string. grammY's convenience method forces
+  // it as a positional arg, so we use the raw API instead.
+  const invoiceLink = await bot.api.raw.createInvoiceLink({
+    title: t(lang, 'payment_title'),
+    description,
+    payload,
+    currency: 'XTR',
+    prices: [{ label: 'Match Fee', amount: MATCH_FEE_STARS }],
+  });
 
   return invoiceLink;
 }
