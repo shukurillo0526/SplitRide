@@ -68,7 +68,7 @@ export default function App() {
 
       try {
         const { invoice } = await import('@telegram-apps/sdk');
-        if (invoice.open.isAvailable()) {
+        if (invoice && invoice.open) {
           paymentStatus = await invoice.open(invoiceUrl, 'url');
         }
       } catch (sdkErr) {

@@ -3,6 +3,9 @@ import { init, miniApp, themeParams, viewport, mockTelegramEnv } from '@telegram
 /**
  * Initialize the Telegram Mini App SDK.
  * In dev mode, mocks the Telegram environment for browser testing.
+ *
+ * Uses the SDK v3.11 pattern: isMounted() checks instead of mount.isAvailable()
+ * which can throw in certain Telegram WebView contexts.
  */
 export function initTelegramApp() {
   // Mock environment for local development
@@ -59,35 +62,43 @@ export function initTelegramApp() {
   // Initialize the SDK
   try {
     init();
+    console.log('[Init] SDK initialized successfully');
   } catch (e) {
     console.warn('[Init] SDK init failed:', e);
     return;
   }
 
-  // Mount and bind CSS variables for each module
+  // Mount miniApp and bind CSS variables
   try {
-    if (miniApp.mount.isAvailable()) {
+    if (!miniApp.isMounted()) {
       miniApp.mount();
-      miniApp.bindCssVars();
     }
+    miniApp.bindCssVars();
+    console.log('[Init] miniApp mounted');
   } catch (e) {
     console.warn('[Init] miniApp mount failed:', e);
   }
 
+  // Mount themeParams and bind CSS variables
   try {
-    if (themeParams.mount.isAvailable()) {
+    if (!themeParams.isMounted()) {
       themeParams.mount();
-      themeParams.bindCssVars();
     }
+    themeParams.bindCssVars();
+    console.log('[Init] themeParams mounted');
   } catch (e) {
     console.warn('[Init] themeParams mount failed:', e);
   }
 
+  // Mount viewport (async) and bind CSS variables
   try {
-    if (viewport.mount.isAvailable()) {
+    if (!viewport.isMounted() && !viewport.isMounting()) {
       viewport.mount().then(() => {
         viewport.bindCssVars();
-      }).catch(() => {});
+        console.log('[Init] viewport mounted');
+      }).catch((e) => {
+        console.warn('[Init] viewport mount async failed:', e);
+      });
     }
   } catch (e) {
     console.warn('[Init] viewport mount failed:', e);
