@@ -18,12 +18,13 @@ import {
   removeFromQueue,
   getQueueLength,
   pushRideHistory,
+  getRedis,
 } from './redis.js';
 import { refundUser } from './payments.js';
 import { t } from './i18n.js';
+import { startRideLifecycle } from './lifecycle.js';
 
-// Track active timeouts so we can clear them if a group fills
-const activeTimeouts = new Map();
+// Track queue deadlines statelessly in Redis
 
 /**
  * Process a full group match:
@@ -32,7 +33,7 @@ const activeTimeouts = new Map();
  * 3. Send pinned message with instructions + panic button
  * 4. DM each user with topic link
  */
-export async function processMatch(bot, stadiumId, zoneId) {
+export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null) {
   const stadium = getStadium(stadiumId);
   const zone = getZone(stadiumId, zoneId);
   const matchKey = getMatchKey(stadiumId, zoneId);
@@ -45,8 +46,8 @@ export async function processMatch(bot, stadiumId, zoneId) {
   // Cancel any pending timeout for this queue
   clearQueueTimeout(stadiumId, zoneId);
 
-  // Pop the 4 matched users
-  const members = await popFullGroup(stadiumId, zoneId);
+  // Pop the 4 matched users (or use the pre-popped atomic Lua results)
+  const members = matchedMembers || (await popFullGroup(stadiumId, zoneId));
 
   if (members.length < 4) {
     console.error('[Match] Not enough members popped:', members.length);
@@ -152,6 +153,9 @@ export async function processMatch(bot, stadiumId, zoneId) {
       });
     }
 
+    // Start ride lifecycle and reminders
+    await startRideLifecycle(bot, topicId, stadiumId, zoneId, members, topicLink);
+
     console.log(`[Match] ✅ Group created: Topic ${topicId}, Link: ${topicLink}`);
   } catch (error) {
     console.error('[Match] Failed to create group:', error.message);
@@ -172,83 +176,98 @@ export async function processMatch(bot, stadiumId, zoneId) {
 /**
  * Set up a timeout for a queue. If it doesn't fill in QUEUE_TIMEOUT_MS,
  * refund all waiting users and clear the queue.
+ * This sets a fixed 15-minute deadline in Redis from the first joiner.
  */
-export function setupQueueTimeout(bot, stadiumId, zoneId) {
-  const timeoutKey = `${stadiumId}:${zoneId}`;
-
-  // Clear any existing timeout
-  if (activeTimeouts.has(timeoutKey)) {
-    clearTimeout(activeTimeouts.get(timeoutKey));
+export async function setupQueueTimeout(bot, stadiumId, zoneId) {
+  const r = getRedis();
+  const deadlineKey = `queue_deadline:${stadiumId}:${zoneId}`;
+  const exists = await r.exists(deadlineKey);
+  if (!exists) {
+    await r.set(deadlineKey, '1', { ex: Math.ceil(QUEUE_TIMEOUT_MS / 1000) });
+    console.log(`[Timeout] Set queue deadline for ${stadiumId}:${zoneId} in Redis`);
   }
-
-  const timeout = setTimeout(async () => {
-    activeTimeouts.delete(timeoutKey);
-
-    const matchKey = getMatchKey(stadiumId, zoneId);
-    const members = await getQueueMembers(stadiumId, zoneId);
-
-    if (members.length === 0) return;
-
-    const stadium = getStadium(stadiumId);
-    const zone = getZone(stadiumId, zoneId);
-
-    console.log(`[Timeout] Queue ${matchKey} timed out with ${members.length} members`);
-
-    const chargeIds = await getAllChargeIds(matchKey);
-
-    for (const member of members) {
-      const lang = member.lang || 'en';
-      const chargeId = chargeIds?.[member.userId.toString()];
-
-      if (chargeId) {
-        const refunded = await refundUser(bot, member.userId, chargeId);
-        if (refunded) {
-          try {
-            await bot.api.sendMessage(
-              member.userId,
-              t(lang, 'queue_timeout', { amount: MATCH_FEE_STARS.toString() })
-            );
-          } catch { /* ignore DM failures */ }
-        }
-      }
-
-      // Update match status for frontend
-      await storeMatchStatus(member.userId, {
-        matched: false,
-        timedOut: true,
-        refunded: true,
-      });
-
-      // Push to ride history
-      const userZoneName = zoneId === 'custom' && member.customDestination ? member.customDestination : (zone ? zone.name : '');
-      await pushRideHistory(member.userId, {
-        rideId: `timeout_${Date.now()}`,
-        stadiumId,
-        stadiumName: stadium ? stadium.name : '',
-        zoneId,
-        zoneName: userZoneName,
-        status: 'refunded',
-        createdAt: Date.now(),
-        crew: [],
-        topicLink: '',
-        refund: true,
-        refundAmount: MATCH_FEE_STARS,
-      });
-
-      await removeFromQueue(stadiumId, zoneId, member.userId);
-    }
-  }, QUEUE_TIMEOUT_MS);
-
-  activeTimeouts.set(timeoutKey, timeout);
 }
 
 /**
  * Clear a pending queue timeout.
  */
-function clearQueueTimeout(stadiumId, zoneId) {
-  const timeoutKey = `${stadiumId}:${zoneId}`;
-  if (activeTimeouts.has(timeoutKey)) {
-    clearTimeout(activeTimeouts.get(timeoutKey));
-    activeTimeouts.delete(timeoutKey);
+export async function clearQueueTimeout(stadiumId, zoneId) {
+  const r = getRedis();
+  await r.del(`queue_deadline:${stadiumId}:${zoneId}`);
+}
+
+/**
+ * Scan active queues and process refunds for any that have timed out.
+ */
+export async function checkExpiredQueues(bot) {
+  const r = getRedis();
+  const activeQueues = await r.keys('match:*');
+
+  for (const key of activeQueues) {
+    const parts = key.split(':');
+    if (parts.length < 3) continue;
+    const stadiumId = parts[1];
+    const zoneId = parts[2];
+
+    const len = await r.llen(key);
+    if (len === 0) continue;
+
+    const deadlineKey = `queue_deadline:${stadiumId}:${zoneId}`;
+    const deadlineExists = await r.exists(deadlineKey);
+
+    if (!deadlineExists) {
+      // Queue has timed out!
+      const matchKey = getMatchKey(stadiumId, zoneId);
+      const members = await getQueueMembers(stadiumId, zoneId);
+      if (members.length === 0) continue;
+
+      const stadium = getStadium(stadiumId);
+      const zone = getZone(stadiumId, zoneId);
+
+      console.log(`[Timeout] Queue ${matchKey} timed out with ${members.length} members (stateless)`);
+      const chargeIds = await getAllChargeIds(matchKey);
+
+      for (const member of members) {
+        const lang = member.lang || 'en';
+        const chargeId = chargeIds?.[member.userId.toString()];
+
+        if (chargeId) {
+          const refunded = await refundUser(bot, member.userId, chargeId);
+          if (refunded) {
+            try {
+              await bot.api.sendMessage(
+                member.userId,
+                t(lang, 'queue_timeout', { amount: MATCH_FEE_STARS.toString() })
+              );
+            } catch { /* ignore DM failures */ }
+          }
+        }
+
+        // Update match status for frontend
+        await storeMatchStatus(member.userId, {
+          matched: false,
+          timedOut: true,
+          refunded: true,
+        });
+
+        // Push to ride history
+        const userZoneName = zoneId === 'custom' && member.customDestination ? member.customDestination : (zone ? zone.name : '');
+        await pushRideHistory(member.userId, {
+          rideId: `timeout_${Date.now()}`,
+          stadiumId,
+          stadiumName: stadium ? stadium.name : '',
+          zoneId,
+          zoneName: userZoneName,
+          status: 'refunded',
+          createdAt: Date.now(),
+          crew: [],
+          topicLink: '',
+          refund: true,
+          refundAmount: MATCH_FEE_STARS,
+        });
+
+        await removeFromQueue(stadiumId, zoneId, member.userId);
+      }
+    }
   }
 }

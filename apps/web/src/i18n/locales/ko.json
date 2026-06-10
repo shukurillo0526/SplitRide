@@ -43,6 +43,7 @@
   "cancel_success": "라이드가 취소되었습니다. {amount} ⭐이 환불되었습니다.",
   "cancel_yes": "네, 취소합니다",
   "cancel_no": "계속 대기",
-  "got_it": "확인"
+  "got_it": "확인",
+  "refund_issued": "{amount} ⭐ 환불이 귀하의 계정으로 입금되었습니다."
 }
 

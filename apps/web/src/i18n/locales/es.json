@@ -43,5 +43,6 @@
   "cancel_success": "Viaje cancelado. {amount} ⭐ reembolsadas.",
   "cancel_yes": "Sí, cancelar",
   "cancel_no": "Seguir esperando",
-  "got_it": "Entendido"
+  "got_it": "Entendido",
+  "refund_issued": "Se ha emitido un reembolso de {amount} ⭐ a tu cuenta."
 }

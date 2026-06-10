@@ -43,6 +43,7 @@
   "cancel_success": "ライドがキャンセルされました。{amount} ⭐が返金されました。",
   "cancel_yes": "はい、キャンセルします",
   "cancel_no": "待機を続ける",
-  "got_it": "了解"
+  "got_it": "了解",
+  "refund_issued": "{amount} ⭐ の返金がアカウントに送金されました。"
 }
 

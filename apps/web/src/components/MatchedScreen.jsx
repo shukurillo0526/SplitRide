@@ -1,7 +1,7 @@
 import { t } from '../i18n/index.js';
 import SplitRideLogo from './SplitRideLogo.jsx';
 
-export default function MatchedScreen({ matchData }) {
+export default function MatchedScreen({ matchData, onContinue }) {
   const { topicLink, stadiumName, zoneName } = matchData || {};
 
   const handleOpenGroup = () => {
@@ -84,6 +84,17 @@ export default function MatchedScreen({ matchData }) {
         <span className="text-xl">💬</span>
         {t('open_group')}
       </button>
+
+      {/* Go to Active Ride button */}
+      {onContinue && (
+        <button
+          onClick={onContinue}
+          className="w-full py-3.5 px-6 mt-3 rounded-2xl font-bold text-tg-text glass border border-white/10 transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2"
+        >
+          <span>👥</span>
+          <span>{t('view_ride_details') || 'View Ride Details'}</span>
+        </button>
+      )}
 
       {/* Celebration particles */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">

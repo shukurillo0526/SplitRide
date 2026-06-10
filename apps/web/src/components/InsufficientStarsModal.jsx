@@ -56,13 +56,32 @@ export default function InsufficientStarsModal({ amount, onClose }) {
             </div>
           </div>
 
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="w-full py-3.5 px-6 rounded-2xl font-semibold text-tg-text glass border border-white/10 transition-all duration-200 active:scale-[0.98] hover:bg-white/[0.08]"
-          >
-            {t('got_it') || 'Got it'}
-          </button>
+          {/* Action buttons */}
+          <div className="flex flex-col gap-2.5">
+            <button
+              onClick={() => {
+                try {
+                  if (window.Telegram?.WebApp?.openTelegramLink) {
+                    window.Telegram.WebApp.openTelegramLink('https://t.me/stars');
+                  } else {
+                    window.open('https://t.me/stars', '_blank');
+                  }
+                } catch {
+                  window.open('https://t.me/stars', '_blank');
+                }
+              }}
+              className="w-full py-4 px-6 rounded-2xl font-bold text-white cta-gradient transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              <span>⭐</span>
+              <span>{t('buy_stars') || 'Buy Telegram Stars'}</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full py-3.5 px-6 rounded-2xl font-semibold text-tg-text glass border border-white/10 transition-all duration-200 active:scale-[0.98] hover:bg-white/[0.08]"
+            >
+              {t('got_it') || 'Got it'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

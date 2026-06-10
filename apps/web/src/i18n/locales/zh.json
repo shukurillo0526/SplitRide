@@ -43,6 +43,7 @@
   "cancel_success": "拼车已取消。{amount} ⭐ 已退还。",
   "cancel_yes": "是的，取消",
   "cancel_no": "继续等待",
-  "got_it": "知道了"
+  "got_it": "知道了",
+  "refund_issued": "已向您的账户退还 {amount} ⭐。"
 }
 

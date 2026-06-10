@@ -17,27 +17,64 @@ export function getRedis() {
 // ─── Queue Operations ────────────────────────────────────────────────────────
 
 /**
- * Push a user into the matchmaking queue.
- * userData: { userId, firstName, username }
+ * Push a user into the matchmaking queue atomically using Lua.
+ * Returns { status: 'queued', length } OR { status: 'matched', members }
  */
 export async function pushToQueue(stadiumId, zoneId, userData) {
   const r = getRedis();
-  const key = `match:${stadiumId}:${zoneId}`;
+  const queueKey = `match:${stadiumId}:${zoneId}`;
+  const deadlineKey = `queue_deadline:${stadiumId}:${zoneId}`;
+  const userQueueKey = `userqueue:${userData.userId}`;
+
   const entry = JSON.stringify({
     ...userData,
     joinedAt: Date.now(),
   });
 
-  await r.rpush(key, entry);
-  // Set TTL on the queue key so it auto-expires if abandoned
-  await r.expire(key, Math.ceil(QUEUE_TIMEOUT_MS / 1000) + 60);
+  const timeoutSeconds = Math.ceil(QUEUE_TIMEOUT_MS / 1000);
 
-  // Track which queue this user is in
-  await r.set(`userqueue:${userData.userId}`, `${stadiumId}:${zoneId}`, {
-    ex: Math.ceil(QUEUE_TIMEOUT_MS / 1000) + 60,
-  });
+  const LUA_SCRIPT = `
+    local queueKey = KEYS[1]
+    local deadlineKey = KEYS[2]
+    local userQueueKey = KEYS[3]
+    local memberData = ARGV[1]
+    local userId = ARGV[2]
+    local timeoutSec = tonumber(ARGV[3])
 
-  return await r.llen(key);
+    redis.call('rpush', queueKey, memberData)
+    redis.call('set', userQueueKey, string.sub(queueKey, 7), 'ex', timeoutSec + 60)
+
+    local len = redis.call('llen', queueKey)
+    if len >= 4 then
+      local members = redis.call('lrange', queueKey, 0, 3)
+      redis.call('del', queueKey)
+      redis.call('del', deadlineKey)
+      for i = 1, 4 do
+        local m = cjson.decode(members[i])
+        redis.call('del', 'userqueue:' .. tostring(m.userId))
+      end
+      return { 'matched', members[1], members[2], members[3], members[4] }
+    else
+      local has_deadline = redis.call('exists', deadlineKey)
+      if has_deadline == 0 then
+        redis.call('set', deadlineKey, '1', 'ex', timeoutSec)
+      end
+      return { 'queued', tostring(len) }
+    end
+  `;
+
+  const result = await r.eval(
+    LUA_SCRIPT,
+    [queueKey, deadlineKey, userQueueKey],
+    [entry, userData.userId.toString(), timeoutSeconds]
+  );
+
+  if (result[0] === 'matched') {
+    const members = result.slice(1).map((m) => JSON.parse(m));
+    return { status: 'matched', members };
+  } else {
+    return { status: 'queued', length: parseInt(result[1], 10) };
+  }
 }
 
 /**
@@ -65,6 +102,7 @@ export async function popFullGroup(stadiumId, zoneId) {
   const key = `match:${stadiumId}:${zoneId}`;
   const raw = await r.lrange(key, 0, 3);
   await r.del(key);
+  await r.del(`queue_deadline:${stadiumId}:${zoneId}`);
 
   const members = raw.map((entry) => (typeof entry === 'string' ? JSON.parse(entry) : entry));
 
@@ -82,11 +120,19 @@ export async function popFullGroup(stadiumId, zoneId) {
 export async function removeFromQueue(stadiumId, zoneId, userId) {
   const r = getRedis();
   const key = `match:${stadiumId}:${zoneId}`;
-  const members = await getQueueMembers(stadiumId, zoneId);
-  const entry = members.find((m) => m.userId === userId);
-  if (entry) {
-    await r.lrem(key, 1, JSON.stringify(entry));
-    await r.del(`userqueue:${userId}`);
+  const rawMembers = await r.lrange(key, 0, -1);
+  for (const raw of rawMembers) {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (parsed && parsed.userId === userId) {
+      await r.lrem(key, 1, raw);
+      await r.del(`userqueue:${userId}`);
+      break;
+    }
+  }
+  // If queue is now empty, clean up the deadline key
+  const len = await r.llen(key);
+  if (len === 0) {
+    await r.del(`queue_deadline:${stadiumId}:${zoneId}`);
   }
 }
 

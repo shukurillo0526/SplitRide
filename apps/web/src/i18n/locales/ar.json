@@ -43,6 +43,7 @@
   "cancel_success": "تم إلغاء الرحلة. تم استرداد {amount} ⭐.",
   "cancel_yes": "نعم، إلغاء",
   "cancel_no": "استمر في الانتظار",
-  "got_it": "حسناً"
+  "got_it": "حسناً",
+  "refund_issued": "تم إرجاع {amount} ⭐ إلى حسابك."
 }
 

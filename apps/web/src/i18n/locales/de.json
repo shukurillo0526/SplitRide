@@ -43,6 +43,7 @@
   "cancel_success": "Fahrt abgebrochen. {amount} ⭐ erstattet.",
   "cancel_yes": "Ja, abbrechen",
   "cancel_no": "Weiter warten",
-  "got_it": "Verstanden"
+  "got_it": "Verstanden",
+  "refund_issued": "Eine Rückerstattung von {amount} ⭐ wurde Ihrem Konto gutgeschrieben."
 }
 

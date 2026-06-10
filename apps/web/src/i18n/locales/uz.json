@@ -43,5 +43,15 @@
   "cancel_success": "Sayohat bekor qilindi. {amount} ⭐ qaytarildi.",
   "cancel_yes": "Ha, bekor qilish",
   "cancel_no": "Kutishni davom ettirish",
-  "got_it": "Tushunarli"
+  "got_it": "Tushunarli",
+  "refund_issued": "Hisobingizga {amount} ⭐ miqdorida qaytarib berildi.",
+  "join_group_title": "Telegram guruhiga qo'shiling",
+  "join_group_subtitle": "Sayohatlarni kelishish va vaqtinchalik guruh chatlariga kirish uchun Telegram hamjamiyatimiz a'zosi bo'lishingiz kerak.",
+  "join_group_btn": "SplitRide guruhiga qo'shilish",
+  "join_group_confirm": "Qo'shildim — Davom etish",
+  "active_ride_title": "Guruhingiz",
+  "complete_ride": "Sayohatni yakunlash",
+  "complete_confirm": "Sayohatni yakunlamoqchimisiz? Guruh chati butunlay o'chiriladi.",
+  "riding_instructions": "Yo'ldoshlaringiz bilan bog'lanish va joylashuvingizni ulashish uchun guruh chatini oching.",
+  "view_ride_details": "Sayohat tafsilotlarini ko'rish"
 }

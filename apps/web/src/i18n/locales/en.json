@@ -43,5 +43,16 @@
   "cancel_success": "Ride cancelled. {amount} ⭐ refunded.",
   "cancel_yes": "Yes, cancel",
   "cancel_no": "Keep waiting",
-  "got_it": "Got it"
+  "got_it": "Got it",
+  "refund_issued": "Refund of {amount} ⭐ has been issued to your account.",
+  "join_group_title": "Join our Telegram Group",
+  "join_group_subtitle": "You must be a member of our Telegram community to coordinate rides and access temporary chat topics.",
+  "join_group_btn": "Join SplitRide Group",
+  "join_group_confirm": "I've Joined — Continue",
+  "active_ride_title": "Your Ride Crew",
+  "complete_ride": "Complete Ride",
+  "complete_confirm": "Are you sure you want to end this ride? The group chat will be permanently deleted.",
+  "riding_instructions": "Open the group chat to coordinate with your matched crew and share your live location.",
+  "view_ride_details": "View Ride Details",
+  "buy_stars": "Buy Telegram Stars"
 }

@@ -43,6 +43,7 @@
   "cancel_success": "Corrida cancelada. {amount} ⭐ reembolsadas.",
   "cancel_yes": "Sim, cancelar",
   "cancel_no": "Continuar esperando",
-  "got_it": "Entendido"
+  "got_it": "Entendido",
+  "refund_issued": "Um reembolso de {amount} ⭐ foi emitido para sua conta."
 }
 

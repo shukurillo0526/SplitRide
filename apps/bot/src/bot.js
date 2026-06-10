@@ -33,6 +33,16 @@ bot.on('message:successful_payment', async (ctx) => {
 });
 
 // ─── Dispute Handlers ────────────────────────────────────────────────────────
+import { completeRide } from './lifecycle.js';
+
+// Handler for manual ride completion via inline button in topic
+bot.callbackQuery(/^complete_ride:(.+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const topicId = ctx.match[1];
+  console.log(`[Bot] complete_ride triggered via inline button for topic ${topicId}`);
+  await completeRide(bot, topicId);
+});
+
 registerDisputeHandlers(bot);
 
 // ─── Error Boundary ──────────────────────────────────────────────────────────

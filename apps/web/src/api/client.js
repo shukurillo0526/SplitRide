@@ -14,6 +14,30 @@ function getHeaders(rawInitData) {
  * Create a Stars invoice link for the given stadium and zone.
  * Returns { invoiceUrl, fee, stadium, zone }
  */
+/**
+ * Check if the user is a member of the SplitRide Telegram supergroup.
+ */
+export async function checkMembership(rawInitData) {
+  const url = `${API_URL}/api/membership`;
+  const res = await fetch(url, {
+    headers: getHeaders(rawInitData),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    const err = new Error(error.error || `HTTP ${res.status}`);
+    err.status = res.status;
+    err.data = error;
+    throw err;
+  }
+
+  return res.json();
+}
+
+/**
+ * Create a Stars invoice link for the given stadium and zone.
+ * Returns { invoiceUrl, fee, stadium, zone }
+ */
 export async function createInvoice(stadiumId, zoneId, rawInitData, customDestination = '') {
   const url = `${API_URL}/api/create-invoice`;
   console.log('[API] createInvoice →', url, { stadiumId, zoneId, hasAuth: !!rawInitData });
@@ -27,7 +51,10 @@ export async function createInvoice(stadiumId, zoneId, rawInitData, customDestin
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     console.error('[API] createInvoice FAILED:', res.status, error);
-    throw new Error(error.error || `HTTP ${res.status}`);
+    const err = new Error(error.error || `HTTP ${res.status}`);
+    err.status = res.status;
+    err.data = error;
+    throw err;
   }
 
   return res.json();
@@ -85,6 +112,42 @@ export async function getRideHistory(rawInitData) {
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     console.error('[API] getRideHistory FAILED:', res.status, error);
+    throw new Error(error.error || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Fetch the user's active ride.
+ * Returns { active, ride? }
+ */
+export async function getActiveRide(rawInitData) {
+  const url = `${API_URL}/api/active-ride`;
+  const res = await fetch(url, {
+    headers: getHeaders(rawInitData),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Manually complete the active ride.
+ */
+export async function completeRide(rawInitData) {
+  const url = `${API_URL}/api/complete-ride`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: getHeaders(rawInitData),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
     throw new Error(error.error || `HTTP ${res.status}`);
   }
 

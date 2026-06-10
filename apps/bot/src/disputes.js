@@ -13,6 +13,7 @@ import {
 import { refundUser } from './payments.js';
 import { t, resolveLanguage } from './i18n.js';
 import { MATCH_FEE_STARS, DISPATCH_GROUP_ID, getStadium, getZone } from './config.js';
+import { completeRide } from './lifecycle.js';
 
 /**
  * Register all dispute-related callback query handlers on the bot.
@@ -181,6 +182,9 @@ export function registerDisputeHandlers(bot) {
       } catch (err) {
         console.error('[Dispute] Failed to post in topic:', err.message);
       }
+
+      // Close the active ride and delete the topic
+      await completeRide(bot, topicId, true);
     }
   });
 }

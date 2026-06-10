@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTelegram } from './hooks/useTelegram.js';
 import { t, detectLanguage, setLanguage } from './i18n/index.js';
-import { createInvoice } from './api/client.js';
+import { createInvoice, getActiveRide } from './api/client.js';
 import SplitRideLogo from './components/SplitRideLogo.jsx';
 import StadiumSelector from './components/StadiumSelector.jsx';
 import ZoneSelector from './components/ZoneSelector.jsx';
@@ -12,6 +12,8 @@ import LanguageSwitcher from './components/LanguageSwitcher.jsx';
 import TabBar from './components/TabBar.jsx';
 import HistoryTab from './components/HistoryTab.jsx';
 import InsufficientStarsModal from './components/InsufficientStarsModal.jsx';
+import JoinGroupModal from './components/JoinGroupModal.jsx';
+import ActiveRideScreen from './components/ActiveRideScreen.jsx';
 
 /**
  * App states: selecting → waiting → matched
@@ -28,7 +30,11 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [matchData, setMatchData] = useState(null);
+  const [activeRideData, setActiveRideData] = useState(null);
+  const [matchFee, setMatchFee] = useState(150);
   const [showStarsModal, setShowStarsModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinLink, setJoinLink] = useState('https://t.me/SplitRide26');
   const [, setLangTick] = useState(0); // force re-render on language change
 
   // Initialize language from Telegram user
@@ -37,6 +43,46 @@ export default function App() {
     setLanguage(lang);
     setLangTick((n) => n + 1);
   }, [languageCode]);
+
+  // Check active ride status on mount
+  useEffect(() => {
+    const checkActiveRide = async () => {
+      if (!rawInitData) return;
+      try {
+        const res = await getActiveRide(rawInitData);
+        if (res && res.active) {
+          setActiveRideData(res.ride);
+          setAppState('riding');
+        } else if (res && res.queued) {
+          setStadiumId(res.stadiumId);
+          setZoneId(res.zoneId);
+          setAppState('waiting');
+        }
+      } catch (err) {
+        console.error('[App] Failed to check active ride:', err);
+      }
+    };
+    checkActiveRide();
+  }, [rawInitData]);
+
+  // Fetch dynamic config on mount
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/config`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.matchFeeStars) {
+            setMatchFee(data.matchFeeStars);
+          }
+        }
+      } catch (err) {
+        console.error('[App] Failed to fetch config:', err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   // Reset zone when stadium changes
   const handleStadiumChange = useCallback((id) => {
@@ -104,7 +150,10 @@ export default function App() {
       }
     } catch (err) {
       console.error('[App] Payment error:', err);
-      if (err.message === 'blacklisted') {
+      if (err.message === 'not_member') {
+        setJoinLink(err.data?.joinLink || 'https://t.me/SplitRide26');
+        setShowJoinModal(true);
+      } else if (err.message === 'blacklisted') {
         setError(t('blacklisted_message', { hours: '72' }));
       } else if (err.message === 'already_in_queue') {
         setError(t('already_in_queue'));
@@ -224,6 +273,7 @@ export default function App() {
                   onPress={handleFindMatch}
                   disabled={!isFormComplete}
                   loading={loading}
+                  fee={matchFee}
                 />
               </div>
             )}
@@ -239,7 +289,41 @@ export default function App() {
             )}
 
             {appState === 'matched' && (
-              <MatchedScreen matchData={matchData} />
+              <MatchedScreen
+                matchData={matchData}
+                onContinue={async () => {
+                  setLoading(true);
+                  try {
+                    const res = await getActiveRide(rawInitData);
+                    if (res && res.active) {
+                      setActiveRideData(res.ride);
+                      setAppState('riding');
+                    } else {
+                      setAppState('selecting');
+                    }
+                  } catch (err) {
+                    console.error('[App] Failed to fetch matched ride:', err);
+                    setAppState('selecting');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              />
+            )}
+
+            {appState === 'riding' && activeRideData && (
+              <ActiveRideScreen
+                rideData={activeRideData}
+                rawInitData={rawInitData}
+                onCompleted={() => {
+                  setAppState('selecting');
+                  setStadiumId('');
+                  setZoneId('');
+                  setCustomDestination('');
+                  setActiveRideData(null);
+                  setMatchData(null);
+                }}
+              />
             )}
           </>
         )}
@@ -252,10 +336,22 @@ export default function App() {
       {/* ── Tab Bar ──────────────────────────────────────────────────────── */}
       <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
 
+      {/* ── Join Group Modal ─────────────────────────────────────────────── */}
+      {showJoinModal && (
+        <JoinGroupModal
+          joinLink={joinLink}
+          onClose={() => setShowJoinModal(false)}
+          onConfirm={() => {
+            setShowJoinModal(false);
+            handleFindMatch();
+          }}
+        />
+      )}
+
       {/* ── Insufficient Stars Modal ─────────────────────────────────────── */}
       {showStarsModal && (
         <InsufficientStarsModal
-          amount={150}
+          amount={matchFee}
           onClose={() => setShowStarsModal(false)}
         />
       )}

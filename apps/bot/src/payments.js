@@ -101,14 +101,15 @@ export async function processPayment(bot, ctx) {
   };
 
 
-  const queueLength = await pushToQueue(stadiumId, zoneId, userData);
+  const result = await pushToQueue(stadiumId, zoneId, userData);
 
-  console.log(`[Payment] User ${userId} joined queue ${matchKey} (${queueLength}/4)`);
-
-  if (queueLength >= 4) {
-    // Full group — trigger matchmaking
-    await processMatch(bot, stadiumId, zoneId);
+  if (result.status === 'matched') {
+    console.log(`[Payment] User ${userId} joined queue ${matchKey} -> MATCHED!`);
+    await processMatch(bot, stadiumId, zoneId, result.members);
   } else {
+    const queueLength = result.length;
+    console.log(`[Payment] User ${userId} joined queue ${matchKey} (${queueLength}/4)`);
+    
     // Notify user they're in queue
     const remaining = 4 - queueLength;
     const displayZoneName = zoneId === 'custom' && customDestination ? customDestination : zone.name;
@@ -120,8 +121,8 @@ export async function processPayment(bot, ctx) {
       })
     );
 
-    // Start/reset timeout for this queue
-    setupQueueTimeout(bot, stadiumId, zoneId);
+    // Setup queue timeout in Redis (only sets if not already active)
+    await setupQueueTimeout(bot, stadiumId, zoneId);
   }
 }
 

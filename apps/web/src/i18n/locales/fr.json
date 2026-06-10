@@ -43,5 +43,6 @@
   "cancel_success": "Trajet annulé. {amount} ⭐ remboursées.",
   "cancel_yes": "Oui, annuler",
   "cancel_no": "Continuer d'attendre",
-  "got_it": "Compris"
+  "got_it": "Compris",
+  "refund_issued": "Un remboursement de {amount} ⭐ a été émis sur votre compte."
 }

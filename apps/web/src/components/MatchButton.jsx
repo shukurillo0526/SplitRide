@@ -1,7 +1,7 @@
 import { t } from '../i18n/index.js';
 import SplitRideLogo from './SplitRideLogo.jsx';
 
-export default function MatchButton({ onPress, disabled, loading }) {
+export default function MatchButton({ onPress, disabled, loading, fee = 150 }) {
   return (
     <div className="animate-slide-up" style={{ animationDelay: '0.3s' }}>
       <button
@@ -30,7 +30,7 @@ export default function MatchButton({ onPress, disabled, loading }) {
           <>
             <SplitRideLogo size={26} />
             <span>{t('find_match')}</span>
-            <span className="ml-1 text-sm opacity-70 font-semibold">— {t('stars_fee')}</span>
+            <span className="ml-1 text-sm opacity-70 font-semibold">— {fee} ⭐</span>
           </>
         )}
       </button>
