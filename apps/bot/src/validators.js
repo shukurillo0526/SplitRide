@@ -21,15 +21,25 @@ export function authMiddleware(req, res, next) {
     const authHeader = req.headers['authorization'] || '';
 
     if (!authHeader.startsWith('tma ')) {
+      console.error('[Auth] Missing auth header. Got:', authHeader ? authHeader.slice(0, 20) + '...' : '(empty)');
       return res.status(401).json({ error: 'Missing or invalid authorization header' });
     }
 
     const initDataRaw = authHeader.slice(4); // Remove 'tma ' prefix
+    
+    if (!initDataRaw || initDataRaw.length < 10) {
+      console.error('[Auth] initData too short:', initDataRaw?.length || 0, 'chars');
+      return res.status(401).json({ error: 'Empty or invalid initData' });
+    }
+
     const data = validateInitData(initDataRaw);
 
     if (!data.user) {
+      console.error('[Auth] No user in parsed initData');
       return res.status(401).json({ error: 'No user data in initData' });
     }
+
+    console.log('[Auth] Validated user:', data.user.id, data.user.firstName);
 
     req.telegramUser = {
       id: data.user.id,
