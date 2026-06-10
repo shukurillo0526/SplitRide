@@ -27,7 +27,7 @@ export default function MatchedScreen({ matchData, onContinue }) {
         {t('match_found')}
       </h2>
       <p className="text-sm text-tg-hint mb-8 animate-fade-in">
-        {t('match_subtitle')}
+        {t('match_subtitle', { count: matchData?.memberCount || 4 })}
       </p>
 
       {/* Route badge */}
@@ -68,7 +68,7 @@ export default function MatchedScreen({ matchData, onContinue }) {
               <span className="text-sm">💰</span>
             </div>
             <div>
-              <p className="text-sm font-medium text-tg-text">{t('split_ride')}</p>
+              <p className="text-sm font-medium text-tg-text">{t('split_ride', { count: matchData?.memberCount || 4 })}</p>
             </div>
           </div>
         </div>

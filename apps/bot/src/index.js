@@ -19,6 +19,7 @@ import {
   pushToQueue,
   storeMatchStatus,
   getRedis,
+  popThreeGroup,
 } from './redis.js';
 import { completeRide, processScheduledReminders } from './lifecycle.js';
 import { checkExpiredQueues, processMatch, setupQueueTimeout } from './matchmaking.js';
@@ -213,11 +214,29 @@ app.get('/api/match-status', authMiddleware, async (req, res) => {
     // Check queue position
     if (stadiumId && zoneId) {
       const queueLength = await getQueueLength(stadiumId, zoneId);
+      let threeJoinedAt = null;
+      if (queueLength === 3) {
+        const threeKey = `queue_three_timestamp:${stadiumId}:${zoneId}`;
+        const r = getRedis();
+        const existing = await r.get(threeKey);
+        if (existing) {
+          threeJoinedAt = parseInt(existing, 10);
+        } else {
+          threeJoinedAt = Date.now();
+          await r.set(threeKey, threeJoinedAt.toString(), { ex: 3600 });
+        }
+      } else if (queueLength < 3) {
+        const threeKey = `queue_three_timestamp:${stadiumId}:${zoneId}`;
+        const r = getRedis();
+        await r.del(threeKey);
+      }
+
       return res.json({
         matched: false,
         timedOut: false,
         queuePosition: queueLength,
         queueNeeded: 4,
+        threeJoinedAt,
       });
     }
 
@@ -226,6 +245,23 @@ app.get('/api/match-status', authMiddleware, async (req, res) => {
     if (userQueue) {
       const [sId, zId] = userQueue.split(':');
       const queueLength = await getQueueLength(sId, zId);
+      let threeJoinedAt = null;
+      if (queueLength === 3) {
+        const threeKey = `queue_three_timestamp:${sId}:${zId}`;
+        const r = getRedis();
+        const existing = await r.get(threeKey);
+        if (existing) {
+          threeJoinedAt = parseInt(existing, 10);
+        } else {
+          threeJoinedAt = Date.now();
+          await r.set(threeKey, threeJoinedAt.toString(), { ex: 3600 });
+        }
+      } else if (queueLength < 3) {
+        const threeKey = `queue_three_timestamp:${sId}:${zId}`;
+        const r = getRedis();
+        await r.del(threeKey);
+      }
+
       return res.json({
         matched: false,
         timedOut: false,
@@ -233,6 +269,7 @@ app.get('/api/match-status', authMiddleware, async (req, res) => {
         queueNeeded: 4,
         stadiumId: sId,
         zoneId: zId,
+        threeJoinedAt,
       });
     }
 
@@ -245,6 +282,43 @@ app.get('/api/match-status', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('[API] match-status error:', error);
     res.status(500).json({ error: 'Failed to check match status' });
+  }
+});
+
+// ─── API: Match with 3 Riders ────────────────────────────────────────────────
+app.post('/api/match-three', authMiddleware, async (req, res) => {
+  try {
+    const user = req.telegramUser;
+
+    // Check if user is in any queue
+    const userQueue = await getUserQueue(user.id);
+    if (!userQueue) {
+      return res.status(400).json({ error: 'You are not in a queue' });
+    }
+
+    const [stadiumId, zoneId] = userQueue.split(':');
+
+    // Check if queue has at least 3 people
+    const queueLength = await getQueueLength(stadiumId, zoneId);
+    if (queueLength < 3) {
+      return res.status(400).json({ error: 'Queue must have at least 3 people to match' });
+    }
+
+    // Atomically pop 3 members and trim queue
+    const members = await popThreeGroup(stadiumId, zoneId);
+    if (members.length < 3) {
+      return res.status(400).json({ error: 'Failed to retrieve 3 members from queue' });
+    }
+
+    console.log(`[API] Manual match of 3 users triggered by user ${user.id} for ${stadiumId}:${zoneId}`);
+
+    // Trigger match
+    await processMatch(bot, stadiumId, zoneId, members);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[API] match-three error:', error);
+    res.status(500).json({ error: 'Failed to match 3 riders' });
   }
 });
 

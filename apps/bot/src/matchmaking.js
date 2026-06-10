@@ -49,7 +49,7 @@ export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null
   // Pop the 4 matched users (or use the pre-popped atomic Lua results)
   const members = matchedMembers || (await popFullGroup(stadiumId, zoneId));
 
-  if (members.length < 4) {
+  if (members.length < 3) {
     console.error('[Match] Not enough members popped:', members.length);
     return;
   }
@@ -58,6 +58,7 @@ export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null
 
   try {
     const r = getRedis();
+    await r.del(`queue_three_timestamp:${stadiumId}:${zoneId}`);
     const counterKey = `topic_counter:${stadiumId}:${zoneId}`;
     const tripNum = await r.incr(counterKey);
 
@@ -82,6 +83,7 @@ export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null
     let welcomeText = t('en', 'topic_welcome', {
       stadium: stadium.name,
       zone: zoneId === 'custom' ? 'Other Destination' : zone.name,
+      count: members.length.toString(),
     });
 
     if (zoneId === 'custom') {
@@ -134,6 +136,7 @@ export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null
         zoneName: userZoneName,
         topicId,
         matchedAt: Date.now(),
+        memberCount: members.length,
       });
 
       // Push to ride history
@@ -282,6 +285,7 @@ export async function checkExpiredQueues(bot) {
 
         await removeFromQueue(stadiumId, zoneId, member.userId);
       }
+      await r.del(`queue_three_timestamp:${stadiumId}:${zoneId}`);
     }
   }
 }

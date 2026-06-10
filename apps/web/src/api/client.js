@@ -174,3 +174,21 @@ export async function completeRide(rawInitData) {
 
   return res.json();
 }
+
+/**
+ * Request to match with 3 riders manual bypass.
+ */
+export async function matchThree(rawInitData) {
+  const url = `${API_URL}/api/match-three`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: getHeaders(rawInitData),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}

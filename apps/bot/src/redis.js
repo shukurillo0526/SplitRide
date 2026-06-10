@@ -119,6 +119,36 @@ export async function popFullGroup(stadiumId, zoneId) {
 }
 
 /**
+ * Pop 3 members from the queue and trim the queue.
+ */
+export async function popThreeGroup(stadiumId, zoneId) {
+  const r = getRedis();
+  const key = `match:${stadiumId}:${zoneId}`;
+  const raw = await r.lrange(key, 0, 2);
+
+  await r.ltrim(key, 3, -1);
+
+  // If queue is now empty, delete it and its deadline
+  const len = await r.llen(key);
+  if (len === 0) {
+    await r.del(key);
+    await r.del(`queue_deadline:${stadiumId}:${zoneId}`);
+  }
+
+  // Delete queue_three_timestamp if it exists
+  await r.del(`queue_three_timestamp:${stadiumId}:${zoneId}`);
+
+  const members = raw.map((entry) => (typeof entry === 'string' ? JSON.parse(entry) : entry));
+
+  // Clean up user queue mappings
+  for (const member of members) {
+    await r.del(`userqueue:${member.userId}`);
+  }
+
+  return members;
+}
+
+/**
  * Remove a specific user from a queue (for refunds/timeouts).
  */
 export async function removeFromQueue(stadiumId, zoneId, userId) {
