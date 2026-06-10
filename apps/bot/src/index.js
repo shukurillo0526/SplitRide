@@ -15,11 +15,13 @@ import {
   pushRideHistory,
   removeFromQueue,
   getChargeId,
+  storeChargeId,
+  pushToQueue,
   storeMatchStatus,
   getRedis,
 } from './redis.js';
 import { completeRide, processScheduledReminders } from './lifecycle.js';
-import { checkExpiredQueues } from './matchmaking.js';
+import { checkExpiredQueues, processMatch, setupQueueTimeout } from './matchmaking.js';
 import {
   PORT,
   WEBHOOK_URL,
@@ -83,6 +85,24 @@ app.get('/api/membership', authMiddleware, async (req, res) => {
   }
 });
 
+// ─── API: User Status (Membership & Free Ride) ──────────────────────────────
+app.get('/api/user-status', authMiddleware, async (req, res) => {
+  try {
+    const user = req.telegramUser;
+    const isMember = await checkGroupMembership(bot, user.id);
+    const r = getRedis();
+    const hasUsedFree = await r.exists(`free_ride_used:${user.id}`);
+    res.json({
+      member: isMember,
+      joinLink: `https://t.me/${DISPATCH_GROUP_USERNAME}`,
+      freeRideAvailable: hasUsedFree === 0,
+    });
+  } catch (error) {
+    console.error('[API] user-status error:', error);
+    res.status(500).json({ error: 'Failed to verify user status' });
+  }
+});
+
 // ─── API: Create Invoice Link ────────────────────────────────────────────────
 app.post('/api/create-invoice', authMiddleware, async (req, res) => {
   try {
@@ -132,6 +152,38 @@ app.post('/api/create-invoice', authMiddleware, async (req, res) => {
     }
 
     const lang = resolveLanguage(user.languageCode);
+    const r = getRedis();
+    const hasUsedFree = await r.exists(`free_ride_used:${user.id}`);
+
+    if (hasUsedFree === 0) {
+      console.log(`[Invoice] User ${user.id} qualifies for free first ride. Pushing directly to queue...`);
+      const matchKey = getMatchKey(stadiumId, zoneId);
+      
+      // Store charge ID as 'free'
+      await storeChargeId(user.id, matchKey, 'free');
+      
+      const userData = {
+        userId: user.id,
+        firstName: user.firstName || 'Fan',
+        username: user.username || '',
+        lang,
+        customDestination: customDestination || '',
+      };
+      
+      const result = await pushToQueue(stadiumId, zoneId, userData);
+      if (result.status === 'matched') {
+        await processMatch(bot, stadiumId, zoneId, result.members);
+      } else {
+        await setupQueueTimeout(bot, stadiumId, zoneId);
+      }
+      
+      return res.json({
+        free: true,
+        stadium: stadium.name,
+        zone: zone.name,
+      });
+    }
+
     const invoiceUrl = await createMatchInvoiceLink(bot, user.id, stadiumId, zoneId, lang, customDestination);
 
     res.json({

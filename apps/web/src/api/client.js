@@ -35,6 +35,27 @@ export async function checkMembership(rawInitData) {
 }
 
 /**
+ * Fetch user membership & free ride availability.
+ * Returns { member, joinLink, freeRideAvailable }
+ */
+export async function getUserStatus(rawInitData) {
+  const url = `${API_URL}/api/user-status`;
+  const res = await fetch(url, {
+    headers: getHeaders(rawInitData),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    const err = new Error(error.error || `HTTP ${res.status}`);
+    err.status = res.status;
+    err.data = error;
+    throw err;
+  }
+
+  return res.json();
+}
+
+/**
  * Create a Stars invoice link for the given stadium and zone.
  * Returns { invoiceUrl, fee, stadium, zone }
  */

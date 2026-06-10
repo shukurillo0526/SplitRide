@@ -1,7 +1,7 @@
 import { t } from '../i18n/index.js';
 import SplitRideLogo from './SplitRideLogo.jsx';
 
-export default function MatchButton({ onPress, disabled, loading, fee = 150 }) {
+export default function MatchButton({ onPress, disabled, loading, fee = 150, free = false }) {
   return (
     <div className="animate-slide-up" style={{ animationDelay: '0.3s' }}>
       <button
@@ -30,7 +30,13 @@ export default function MatchButton({ onPress, disabled, loading, fee = 150 }) {
           <>
             <SplitRideLogo size={26} />
             <span>{t('find_match')}</span>
-            <span className="ml-1 text-sm opacity-70 font-semibold">— {fee} ⭐</span>
+            {free ? (
+              <span className="ml-1.5 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold uppercase tracking-wider animate-pulse-slow">
+                {t('free_badge') || 'Free (First)'}
+              </span>
+            ) : (
+              <span className="ml-1 text-sm opacity-70 font-semibold">— {fee} ⭐</span>
+            )}
           </>
         )}
       </button>

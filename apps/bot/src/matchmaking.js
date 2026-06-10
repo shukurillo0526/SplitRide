@@ -151,6 +151,14 @@ export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null
         topicLink,
         refund: false,
       });
+
+      // Mark free ride as used
+      try {
+        const r = getRedis();
+        await r.set(`free_ride_used:${member.userId}`, '1');
+      } catch (redisErr) {
+        console.error(`[Match] Failed to mark free ride used for user ${member.userId}:`, redisErr.message);
+      }
     }
 
     // Start ride lifecycle and reminders

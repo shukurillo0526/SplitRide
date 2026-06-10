@@ -21,6 +21,45 @@ bot.command('start', async (ctx) => {
   });
 });
 
+// ─── /testfill Command (for testing) ──────────────────────────────────────────
+import { getStadium, getZone } from './config.js';
+import { pushToQueue } from './redis.js';
+import { processMatch } from './matchmaking.js';
+
+bot.command('testfill', async (ctx) => {
+  const parts = ctx.message.text.trim().split(/\s+/);
+  if (parts.length < 3) {
+    return ctx.reply('Usage: /testfill <stadiumId> <zoneId>');
+  }
+  const stadiumId = parts[1];
+  const zoneId = parts[2];
+
+  const stadium = getStadium(stadiumId);
+  const zone = getZone(stadiumId, zoneId);
+  if (!stadium || !zone) {
+    return ctx.reply('Invalid stadium or zone ID.');
+  }
+
+  await ctx.reply(`Adding 3 mock users to match:${stadiumId}:${zoneId} queue...`);
+
+  const mockUsers = [
+    { userId: 10001, firstName: 'Alice', username: 'alice_fan', lang: 'en', customDestination: '' },
+    { userId: 10002, firstName: 'Bob', username: 'bob_fan', lang: 'en', customDestination: '' },
+    { userId: 10003, firstName: 'Charlie', username: 'charlie_fan', lang: 'en', customDestination: '' },
+  ];
+
+  for (const mockUser of mockUsers) {
+    const result = await pushToQueue(stadiumId, zoneId, mockUser);
+    if (result.status === 'matched') {
+      await ctx.reply('Queue filled to 4! Triggering match...');
+      await processMatch(bot, stadiumId, zoneId, result.members);
+      return;
+    }
+  }
+
+  await ctx.reply('Mock users added. Queue is still not full (make sure you joined the queue first!).');
+});
+
 // ─── Pre-Checkout Query (must answer within 10 seconds) ──────────────────────
 bot.on('pre_checkout_query', async (ctx) => {
   // Always approve — validation happens after payment

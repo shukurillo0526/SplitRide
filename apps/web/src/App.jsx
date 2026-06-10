@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTelegram } from './hooks/useTelegram.js';
 import { t, detectLanguage, setLanguage } from './i18n/index.js';
-import { createInvoice, getActiveRide } from './api/client.js';
+import { createInvoice, getActiveRide, getUserStatus } from './api/client.js';
 import SplitRideLogo from './components/SplitRideLogo.jsx';
 import StadiumSelector from './components/StadiumSelector.jsx';
 import ZoneSelector from './components/ZoneSelector.jsx';
@@ -32,6 +32,7 @@ export default function App() {
   const [matchData, setMatchData] = useState(null);
   const [activeRideData, setActiveRideData] = useState(null);
   const [matchFee, setMatchFee] = useState(150);
+  const [freeRideAvailable, setFreeRideAvailable] = useState(false);
   const [showStarsModal, setShowStarsModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinLink, setJoinLink] = useState('https://t.me/SplitRide26');
@@ -43,6 +44,19 @@ export default function App() {
     setLanguage(lang);
     setLangTick((n) => n + 1);
   }, [languageCode]);
+
+  const refreshUserStatus = useCallback(async () => {
+    if (!rawInitData) return;
+    try {
+      const res = await getUserStatus(rawInitData);
+      if (res) {
+        setFreeRideAvailable(res.freeRideAvailable);
+        setJoinLink(res.joinLink);
+      }
+    } catch (err) {
+      console.error('[App] Failed to refresh user status:', err);
+    }
+  }, [rawInitData]);
 
   // Check active ride status on mount
   useEffect(() => {
@@ -63,7 +77,8 @@ export default function App() {
       }
     };
     checkActiveRide();
-  }, [rawInitData]);
+    refreshUserStatus();
+  }, [rawInitData, refreshUserStatus]);
 
   // Fetch dynamic config on mount
   useEffect(() => {
@@ -106,8 +121,20 @@ export default function App() {
     setError('');
 
     try {
-      // 1. Create invoice on backend
-      const { invoiceUrl } = await createInvoice(stadiumId, zoneId, rawInitData, customDestination);
+      // 1. Create invoice on backend (or bypass if free first ride)
+      const resData = await createInvoice(stadiumId, zoneId, rawInitData, customDestination);
+
+      if (resData.free) {
+        setAppState('waiting');
+        setFreeRideAvailable(false); // consume locally immediately
+        // Haptic feedback
+        try {
+          window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred('success');
+        } catch { /* ignore */ }
+        return;
+      }
+
+      const { invoiceUrl } = resData;
 
       // 2. Open Stars payment via TMA SDK
       let paymentStatus = 'paid'; // default for dev
@@ -186,7 +213,8 @@ export default function App() {
     setCustomDestination('');
     setMatchData(null);
     setError('');
-  }, []);
+    refreshUserStatus();
+  }, [refreshUserStatus]);
 
   // ── Language Change ──────────────────────────────────────────────────────
   const handleLanguageChange = useCallback(() => {
@@ -274,6 +302,7 @@ export default function App() {
                   disabled={!isFormComplete}
                   loading={loading}
                   fee={matchFee}
+                  free={freeRideAvailable}
                 />
               </div>
             )}
@@ -322,6 +351,7 @@ export default function App() {
                   setCustomDestination('');
                   setActiveRideData(null);
                   setMatchData(null);
+                  refreshUserStatus();
                 }}
               />
             )}
