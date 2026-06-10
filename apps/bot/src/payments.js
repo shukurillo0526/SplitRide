@@ -28,14 +28,13 @@ export async function createMatchInvoiceLink(bot, userId, stadiumId, zoneId, lan
     zone: zoneId === 'custom' && customDestination ? customDestination : zone.name,
   });
 
-  const invoiceLink = await bot.api.createInvoiceLink(
-    t(lang, 'payment_title'),       // title
-    description,                      // description
-    payload,                          // payload (returned on payment)
-    '',                               // provider_token (empty for Stars)
-    'XTR',                            // currency
-    [{ label: 'Match Fee', amount: MATCH_FEE_STARS }] // prices
-  );
+  const invoiceLink = await bot.api.createInvoiceLink({
+    title: t(lang, 'payment_title'),
+    description,
+    payload,
+    currency: 'XTR',
+    prices: [{ label: 'Match Fee', amount: MATCH_FEE_STARS }],
+  });
 
   return invoiceLink;
 }
