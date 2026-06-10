@@ -74,7 +74,7 @@ export async function pushToQueue(stadiumId, zoneId, userData) {
   );
 
   if (result[0] === 'matched') {
-    const members = result.slice(1).map((m) => JSON.parse(m));
+    const members = result.slice(1).map((m) => (typeof m === 'string' ? JSON.parse(m) : m));
     return { status: 'matched', members };
   } else {
     return { status: 'queued', length: parseInt(result[1], 10) };
