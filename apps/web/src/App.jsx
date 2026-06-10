@@ -110,7 +110,8 @@ export default function App() {
         setError(t('already_in_queue'));
         setAppState('waiting');
       } else {
-        setError(t('error'));
+        // Show actual error for debugging
+        setError(err.message || t('error'));
       }
     } finally {
       setLoading(false);

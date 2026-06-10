@@ -9,12 +9,18 @@ export default function HistoryTab({ rawInitData }) {
 
   useEffect(() => {
     const fetchHistory = async () => {
+      if (!rawInitData) {
+        console.error('[History] No rawInitData available — cannot authenticate');
+        setError('Authentication failed — please reopen the app');
+        setLoading(false);
+        return;
+      }
       try {
         const data = await getRideHistory(rawInitData);
         setRides(data.history || []);
       } catch (err) {
         console.error('[History] Fetch error:', err);
-        setError(t('error') || 'Something went wrong');
+        setError(err.message || t('error') || 'Something went wrong');
       } finally {
         setLoading(false);
       }
