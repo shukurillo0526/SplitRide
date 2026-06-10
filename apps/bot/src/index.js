@@ -282,14 +282,15 @@ app.post('/api/cancel-ride', authMiddleware, async (req, res) => {
     const matchKey = getMatchKey(stadiumId, zoneId);
     const chargeId = await getChargeId(user.id, matchKey);
 
-    if (!chargeId) {
-      return res.status(404).json({ error: 'Payment record not found. Cannot refund.' });
-    }
-
-    // Refund payment via Stars Bot API
-    const refunded = await refundUser(bot, user.id, chargeId);
-    if (!refunded) {
-      return res.status(500).json({ error: 'Failed to process refund.' });
+    // If chargeId exists, attempt refund. If not, we still proceed to clear the queue
+    let refunded = false;
+    if (chargeId) {
+      refunded = await refundUser(bot, user.id, chargeId);
+      if (!refunded) {
+        console.error(`[Cancel] Refund failed for user ${user.id}, charge ${chargeId}`);
+      }
+    } else {
+      console.warn(`[Cancel] No chargeId found for user ${user.id} in matchKey ${matchKey}. Clearing queue anyway.`);
     }
 
     // Retrieve the user queue entry so we can preserve customDestination if any
@@ -304,7 +305,7 @@ app.post('/api/cancel-ride', authMiddleware, async (req, res) => {
     await storeMatchStatus(user.id, {
       matched: false,
       timedOut: true,
-      refunded: true,
+      refunded: refunded,
       cancelled: true,
     });
 
@@ -320,11 +321,11 @@ app.post('/api/cancel-ride', authMiddleware, async (req, res) => {
       createdAt: Date.now(),
       crew: [],
       topicLink: '',
-      refund: true,
-      refundAmount: MATCH_FEE_STARS,
+      refund: refunded,
+      refundAmount: refunded ? MATCH_FEE_STARS : 0,
     });
 
-    res.json({ success: true, refunded: true, amount: MATCH_FEE_STARS });
+    res.json({ success: true, refunded: refunded, amount: refunded ? MATCH_FEE_STARS : 0 });
   } catch (error) {
     console.error('[API] cancel-ride error:', error);
     res.status(500).json({ error: 'Failed to cancel ride.' });
