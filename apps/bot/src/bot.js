@@ -118,6 +118,37 @@ bot.callbackQuery(/^complete_ride:(.+)$/, async (ctx) => {
   await completeRide(bot, topicId);
 });
 
+// ─── Supergroup Welcome Handler ──────────────────────────────────────────────
+bot.on('message:new_chat_members', async (ctx) => {
+  if (!DISPATCH_GROUP_ID || ctx.chat.id.toString() !== DISPATCH_GROUP_ID.toString()) {
+    return;
+  }
+
+  const newMembers = ctx.message.new_chat_members || [];
+  for (const member of newMembers) {
+    if (member.is_bot) continue;
+
+    const name = member.first_name || 'Fan';
+    const mention = `[${name}](tg://user?id=${member.id})`;
+    const lang = resolveLanguage(member.language_code || ctx.from?.language_code);
+
+    const welcomeText = t(lang, 'superchat_welcome', { mention });
+    const botLink = `https://t.me/${ctx.me.username}`;
+    const keyboard = new InlineKeyboard().url(t(lang, 'open_app'), botLink);
+
+    try {
+      await ctx.reply(welcomeText, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+        message_thread_id: ctx.message.message_thread_id,
+      });
+      console.log(`[Bot] Welcomed new user ${member.id} in supergroup ${ctx.chat.id}`);
+    } catch (err) {
+      console.error(`[Bot] Failed to send group welcome message for user ${member.id}:`, err.message);
+    }
+  }
+});
+
 registerDisputeHandlers(bot);
 
 // ─── Error Boundary ──────────────────────────────────────────────────────────
