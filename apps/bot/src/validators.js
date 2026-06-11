@@ -54,12 +54,30 @@ export function authMiddleware(req, res, next) {
 
     const langHeader = req.headers['x-user-language'] || req.query.lang || data.user.languageCode || 'en';
     const lang = resolveLanguage(langHeader);
+    const isManual = req.headers['x-user-language-manual'] === 'true';
 
     // Save language to Redis asynchronously
     try {
       const r = getRedis();
-      r.set(`user_lang:${data.user.id}`, lang).catch((err) => {
-        console.error(`[Auth] Failed to save language for user ${data.user.id}:`, err.message);
+      
+      const saveLanguageAndManual = async () => {
+        if (isManual) {
+          await r.set(`user_lang:${data.user.id}`, lang);
+          await r.set(`user_lang_manual:${data.user.id}`, '1');
+          console.log(`[Auth] Saved manual language ${lang} for user ${data.user.id}`);
+        } else {
+          const hasManual = await r.exists(`user_lang_manual:${data.user.id}`);
+          if (hasManual === 0) {
+            await r.set(`user_lang:${data.user.id}`, lang);
+            console.log(`[Auth] Auto-saved language ${lang} for user ${data.user.id} (no manual override found)`);
+          } else {
+            console.log(`[Auth] Skipped saving language for user ${data.user.id} (manual override exists in Redis)`);
+          }
+        }
+      };
+
+      saveLanguageAndManual().catch((err) => {
+        console.error(`[Auth] Failed to save language/manual flag for user ${data.user.id}:`, err.message);
       });
     } catch (err) {
       console.error(`[Auth] Redis setup failed for user language save:`, err.message);

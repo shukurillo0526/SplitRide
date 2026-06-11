@@ -38,11 +38,26 @@ export default function App() {
   const [joinLink, setJoinLink] = useState('https://t.me/SplitRide26');
   const [, setLangTick] = useState(0); // force re-render on language change
 
-  // Initialize language from Telegram user
+  // Initialize language from Telegram user, respecting manual override
   useEffect(() => {
-    const lang = detectLanguage(languageCode);
-    setLanguage(lang);
-    setLangTick((n) => n + 1);
+    try {
+      const isManual = localStorage.getItem('sr_lang_manual') === 'true';
+      if (!isManual) {
+        const lang = detectLanguage(languageCode);
+        setLanguage(lang);
+        setLangTick((n) => n + 1);
+      } else {
+        const storedLang = localStorage.getItem('sr_lang');
+        if (storedLang) {
+          setLanguage(storedLang);
+          setLangTick((n) => n + 1);
+        }
+      }
+    } catch (e) {
+      const lang = detectLanguage(languageCode);
+      setLanguage(lang);
+      setLangTick((n) => n + 1);
+    }
   }, [languageCode]);
 
   const refreshUserStatus = useCallback(async () => {

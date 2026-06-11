@@ -28,8 +28,6 @@ export const SUPPORTED_LANGUAGES = [
 
 const SUPPORTED_CODES = SUPPORTED_LANGUAGES.map((l) => l.code);
 
-let currentLanguage = 'en';
-
 /**
  * Detect language from Telegram's language_code.
  */
@@ -39,12 +37,38 @@ export function detectLanguage(languageCode) {
   return SUPPORTED_CODES.includes(code) ? code : 'en';
 }
 
+const getInitialLanguage = () => {
+  if (typeof window !== 'undefined') {
+    try {
+      const isManual = window.localStorage.getItem('sr_lang_manual') === 'true';
+      const storedLang = window.localStorage.getItem('sr_lang');
+      if (isManual && storedLang && SUPPORTED_CODES.includes(storedLang)) {
+        return storedLang;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    const tgLang = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code;
+    return detectLanguage(tgLang || 'en');
+  }
+  return 'en';
+};
+
+let currentLanguage = getInitialLanguage();
+
 /**
  * Set the current language.
  */
 export function setLanguage(lang) {
   if (SUPPORTED_CODES.includes(lang)) {
     currentLanguage = lang;
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('sr_lang', lang);
+      }
+    } catch (e) {
+      /* ignore */
+    }
   }
 }
 

@@ -44,7 +44,7 @@ app.use(
   cors({
     origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174'],
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Language'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Language', 'X-User-Language-Manual'],
   })
 );
 

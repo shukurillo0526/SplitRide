@@ -7,10 +7,18 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
  */
 function getHeaders(rawInitData) {
   const lang = getLanguage();
+  let isManual = 'false';
+  try {
+    if (typeof window !== 'undefined' && window.localStorage.getItem('sr_lang_manual') === 'true') {
+      isManual = 'true';
+    }
+  } catch (e) { /* ignore */ }
+
   return {
     'Content-Type': 'application/json',
     ...(rawInitData ? { Authorization: `tma ${rawInitData}` } : {}),
     ...(lang ? { 'X-User-Language': lang } : {}),
+    'X-User-Language-Manual': isManual,
   };
 }
 

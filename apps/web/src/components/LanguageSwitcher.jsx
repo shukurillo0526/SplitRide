@@ -25,6 +25,9 @@ export default function LanguageSwitcher({ onLanguageChange }) {
   const handleSelect = (code) => {
     setCurrent(code);
     setLanguage(code);
+    try {
+      localStorage.setItem('sr_lang_manual', 'true');
+    } catch { /* ignore */ }
     setIsOpen(false);
     if (onLanguageChange) onLanguageChange(code);
   };

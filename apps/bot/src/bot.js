@@ -4,8 +4,31 @@ import { processPayment } from './payments.js';
 import { registerDisputeHandlers } from './disputes.js';
 import { t, resolveLanguage, getUserLanguage } from './i18n.js';
 
+import { getRedis } from './redis.js';
+
 // ─── Create Bot Instance ─────────────────────────────────────────────────────
 const bot = new Bot(BOT_TOKEN);
+
+// ─── Global Middleware for Language Auto-Sync ────────────────────────────────
+bot.use(async (ctx, next) => {
+  if (ctx.from && ctx.from.id && !ctx.from.is_bot) {
+    try {
+      const r = getRedis();
+      const hasManual = await r.exists(`user_lang_manual:${ctx.from.id}`);
+      if (hasManual === 0) {
+        const tgLang = resolveLanguage(ctx.from.language_code);
+        const currentLang = await r.get(`user_lang:${ctx.from.id}`);
+        if (currentLang !== tgLang) {
+          await r.set(`user_lang:${ctx.from.id}`, tgLang);
+          console.log(`[Bot Middleware] Auto-synced language for user ${ctx.from.id} to ${tgLang} (matching Telegram language_code ${ctx.from.language_code})`);
+        }
+      }
+    } catch (err) {
+      console.error('[Bot Middleware] Error checking/syncing user language:', err.message);
+    }
+  }
+  await next();
+});
 
 // ─── /start Command ──────────────────────────────────────────────────────────
 bot.command('start', async (ctx) => {
