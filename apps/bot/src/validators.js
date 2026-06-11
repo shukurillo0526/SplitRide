@@ -1,5 +1,7 @@
 import { validate, parse } from '@telegram-apps/init-data-node';
 import { BOT_TOKEN } from './config.js';
+import { resolveLanguage } from './i18n.js';
+import { getRedis } from './redis.js';
 
 /**
  * Validate raw initData string and return parsed data.
@@ -49,6 +51,19 @@ export function authMiddleware(req, res, next) {
       languageCode: data.user.languageCode,
       photoUrl: data.user.photoUrl,
     };
+
+    const langHeader = req.headers['x-user-language'] || req.query.lang || data.user.languageCode || 'en';
+    const lang = resolveLanguage(langHeader);
+
+    // Save language to Redis asynchronously
+    try {
+      const r = getRedis();
+      r.set(`user_lang:${data.user.id}`, lang).catch((err) => {
+        console.error(`[Auth] Failed to save language for user ${data.user.id}:`, err.message);
+      });
+    } catch (err) {
+      console.error(`[Auth] Redis setup failed for user language save:`, err.message);
+    }
 
     next();
   } catch (error) {

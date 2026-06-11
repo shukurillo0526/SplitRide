@@ -11,7 +11,7 @@ import {
   pushRideHistory,
 } from './redis.js';
 import { refundUser } from './payments.js';
-import { t, resolveLanguage } from './i18n.js';
+import { t, resolveLanguage, getUserLanguage } from './i18n.js';
 import { MATCH_FEE_STARS, DISPATCH_GROUP_ID, getStadium, getZone } from './config.js';
 import { completeRide } from './lifecycle.js';
 
@@ -25,7 +25,7 @@ export function registerDisputeHandlers(bot) {
 
     const topicId = ctx.match[1];
     const reporterUserId = ctx.from.id;
-    const lang = resolveLanguage(ctx.from.language_code);
+    const lang = await getUserLanguage(reporterUserId, ctx.from.language_code);
 
     // Check if user already reported for this topic
     const alreadyReported = await hasReported(topicId, reporterUserId);
@@ -80,7 +80,7 @@ export function registerDisputeHandlers(bot) {
     const topicId = ctx.match[1];
     const reportedUserId = parseInt(ctx.match[2]);
     const reporterUserId = ctx.from.id;
-    const lang = resolveLanguage(ctx.from.language_code);
+    const lang = await getUserLanguage(reporterUserId, ctx.from.language_code);
 
     // Prevent self-reporting
     if (reporterUserId === reportedUserId) {
@@ -127,7 +127,7 @@ export function registerDisputeHandlers(bot) {
       const victims = members.filter((m) => m.userId !== reportedUserId);
 
       for (const victim of victims) {
-        const victimLang = victim.lang || 'en';
+        const victimLang = await getUserLanguage(victim.userId, victim.lang || 'en');
         const chargeId = chargeIds?.[victim.userId.toString()];
 
         if (chargeId) {
@@ -165,7 +165,7 @@ export function registerDisputeHandlers(bot) {
       // Notify the offender
       try {
         const offender = members.find((m) => m.userId === reportedUserId);
-        const offenderLang = offender?.lang || 'en';
+        const offenderLang = await getUserLanguage(reportedUserId, offender?.lang || 'en');
         await bot.api.sendMessage(
           reportedUserId,
           t(offenderLang, 'user_blacklisted')

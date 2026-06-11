@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getRedis } from './redis.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const localeCache = {};
@@ -49,6 +50,20 @@ export function resolveLanguage(languageCode) {
   if (!languageCode) return 'en';
   const code = languageCode.toLowerCase().split('-')[0];
   return SUPPORTED_CODES.includes(code) ? code : 'en';
+}
+
+/**
+ * Get stored user language from Redis, falling back to Telegram default.
+ */
+export async function getUserLanguage(userId, defaultLang = 'en') {
+  try {
+    const r = getRedis();
+    const saved = await r.get(`user_lang:${userId}`);
+    if (saved) return saved;
+  } catch (err) {
+    console.error(`[i18n] Failed to fetch language for user ${userId}:`, err.message);
+  }
+  return resolveLanguage(defaultLang);
 }
 
 /**

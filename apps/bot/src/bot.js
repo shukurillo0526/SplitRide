@@ -2,14 +2,14 @@ import { Bot, InlineKeyboard, webhookCallback } from 'grammy';
 import { BOT_TOKEN, FRONTEND_URL, DISPATCH_GROUP_ID } from './config.js';
 import { processPayment } from './payments.js';
 import { registerDisputeHandlers } from './disputes.js';
-import { t, resolveLanguage } from './i18n.js';
+import { t, resolveLanguage, getUserLanguage } from './i18n.js';
 
 // ─── Create Bot Instance ─────────────────────────────────────────────────────
 const bot = new Bot(BOT_TOKEN);
 
 // ─── /start Command ──────────────────────────────────────────────────────────
 bot.command('start', async (ctx) => {
-  const lang = resolveLanguage(ctx.from?.language_code);
+  const lang = await getUserLanguage(ctx.from.id, ctx.from?.language_code);
 
   const keyboard = new InlineKeyboard().webApp(
     t(lang, 'open_app'),
@@ -130,7 +130,7 @@ bot.on('message:new_chat_members', async (ctx) => {
 
     const name = member.first_name || 'Fan';
     const mention = `[${name}](tg://user?id=${member.id})`;
-    const lang = resolveLanguage(member.language_code || ctx.from?.language_code);
+    const lang = await getUserLanguage(member.id, member.language_code || ctx.from?.language_code);
 
     const welcomeText = t(lang, 'superchat_welcome', { mention });
     const botLink = `https://t.me/${ctx.me.username}`;

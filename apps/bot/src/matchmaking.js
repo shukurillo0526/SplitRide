@@ -21,7 +21,7 @@ import {
   getRedis,
 } from './redis.js';
 import { refundUser } from './payments.js';
-import { t } from './i18n.js';
+import { t, getUserLanguage } from './i18n.js';
 import { startRideLifecycle } from './lifecycle.js';
 
 // Track queue deadlines statelessly in Redis
@@ -110,7 +110,7 @@ export async function processMatch(bot, stadiumId, zoneId, matchedMembers = null
 
     // 4. DM each user with the match notification + link
     for (const member of members) {
-      const lang = member.lang || 'en';
+      const lang = await getUserLanguage(member.userId, member.lang || 'en');
       const userZoneName = zoneId === 'custom' && member.customDestination ? member.customDestination : zone.name;
 
       const matchText = t(lang, 'match_found', {
@@ -245,7 +245,7 @@ export async function checkExpiredQueues(bot) {
       const chargeIds = await getAllChargeIds(matchKey);
 
       for (const member of members) {
-        const lang = member.lang || 'en';
+        const lang = await getUserLanguage(member.userId, member.lang || 'en');
         const chargeId = chargeIds?.[member.userId.toString()];
 
         if (chargeId) {

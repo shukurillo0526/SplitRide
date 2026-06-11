@@ -1,12 +1,16 @@
+import { getLanguage } from '../i18n/index.js';
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 /**
  * Get auth headers with TMA initData.
  */
 function getHeaders(rawInitData) {
+  const lang = getLanguage();
   return {
     'Content-Type': 'application/json',
     ...(rawInitData ? { Authorization: `tma ${rawInitData}` } : {}),
+    ...(lang ? { 'X-User-Language': lang } : {}),
   };
 }
 

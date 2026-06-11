@@ -1,7 +1,7 @@
 import { MATCH_FEE_STARS, getStadium, getZone, getMatchKey } from './config.js';
 import { storeChargeId, isBlacklisted, getBlacklistTTL, pushToQueue, getQueueLength } from './redis.js';
 import { processMatch, setupQueueTimeout } from './matchmaking.js';
-import { t, resolveLanguage } from './i18n.js';
+import { t, resolveLanguage, getUserLanguage } from './i18n.js';
 
 /**
  * Create a Stars invoice link for the Mini App to open.
@@ -50,7 +50,7 @@ export async function processPayment(bot, ctx) {
   const payment = ctx.message.successful_payment;
   const userId = ctx.from.id;
   const chargeId = payment.telegram_payment_charge_id;
-  const lang = resolveLanguage(ctx.from.language_code);
+  const lang = await getUserLanguage(userId, ctx.from.language_code);
 
   let payloadData;
   try {
