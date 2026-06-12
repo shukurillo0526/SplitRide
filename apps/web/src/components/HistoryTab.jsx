@@ -138,13 +138,13 @@ export default function HistoryTab({ rawInitData }) {
                     : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
                 }`}
               >
-                {isMatched ? t('match_found') : isCancelled ? t('payment_cancelled') : 'Refunded'}
+                {isMatched ? t('match_found') : isCancelled ? t('payment_cancelled') : t('refunded') || 'Refunded'}
               </span>
             </div>
 
             <div className="flex items-center gap-2 mt-4 text-[13px] text-tg-text font-semibold">
               <span className="text-base">📍</span>
-              <span>{ride.zoneName || 'Destination'}</span>
+              <span>{ride.zoneName || t('destination') || 'Destination'}</span>
             </div>
 
             {isMatched && ride.crew && ride.crew.length > 0 && (

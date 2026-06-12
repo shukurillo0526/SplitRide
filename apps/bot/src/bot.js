@@ -4,7 +4,7 @@ import { processPayment } from './payments.js';
 import { registerDisputeHandlers } from './disputes.js';
 import { t, resolveLanguage, getUserLanguage } from './i18n.js';
 
-import { getRedis } from './redis.js';
+import { getRedis, trackEvent } from './redis.js';
 
 // ─── Create Bot Instance ─────────────────────────────────────────────────────
 const bot = new Bot(BOT_TOKEN);
@@ -32,6 +32,7 @@ bot.use(async (ctx, next) => {
 
 // ─── /start Command ──────────────────────────────────────────────────────────
 bot.command('start', async (ctx) => {
+  trackEvent('bot_started', { userId: ctx.from.id });
   const lang = await getUserLanguage(ctx.from.id, ctx.from?.language_code);
 
   const keyboard = new InlineKeyboard().webApp(
@@ -145,6 +146,21 @@ bot.callbackQuery(/^complete_ride:(.+)$/, async (ctx) => {
   const topicId = ctx.match[1];
   console.log(`[Bot] complete_ride triggered via inline button for topic ${topicId}`);
   await completeRide(bot, topicId);
+});
+
+// ─── Rating Callbacks ────────────────────────────────────────────────────────
+bot.callbackQuery(/^rate:(good|bad):(.+)$/, async (ctx) => {
+  const parts = ctx.callbackQuery.data.split(':');
+  const rating = parts[1]; // 'good' or 'bad'
+  const topicId = parts[2];
+
+  trackEvent('ride_rated', { userId: ctx.from.id, rating, topicId });
+  
+  await ctx.answerCallbackQuery('Thank you for your feedback!');
+  await ctx.editMessageText(
+    ctx.callbackQuery.message.text + `\n\n_You rated this ride: ${rating === 'good' ? '👍 Good' : '👎 Bad'}._`,
+    { parse_mode: 'Markdown' }
+  );
 });
 
 // ─── Supergroup Welcome Handler ──────────────────────────────────────────────

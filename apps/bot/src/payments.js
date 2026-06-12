@@ -1,6 +1,6 @@
 import { MATCH_FEE_STARS, getStadium, getZone, getMatchKey } from './config.js';
 import { storeChargeId, isBlacklisted, getBlacklistTTL, pushToQueue, getQueueLength } from './redis.js';
-import { processMatch, setupQueueTimeout } from './matchmaking.js';
+import { processMatch, setupQueueTimeout, notifyQueueAlmostFull } from './matchmaking.js';
 import { t, resolveLanguage, getUserLanguage } from './i18n.js';
 
 /**
@@ -123,6 +123,10 @@ export async function processPayment(bot, ctx) {
 
     // Setup queue timeout in Redis (only sets if not already active)
     await setupQueueTimeout(bot, stadiumId, zoneId);
+
+    if (queueLength === 3) {
+      await notifyQueueAlmostFull(bot, stadiumId, zoneId, userId);
+    }
   }
 }
 

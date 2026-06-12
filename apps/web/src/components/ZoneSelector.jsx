@@ -1,5 +1,5 @@
 import { t } from '../i18n/index.js';
-import { getZones } from '../data/stadiums.js';
+
 
 /**
  * Zone selector with pill-style buttons instead of a dropdown.
@@ -16,8 +16,9 @@ function getZoneIcon(zoneName) {
   return '📍';
 }
 
-export default function ZoneSelector({ stadiumId, value, onChange, customText, onCustomTextChange, disabled }) {
-  const zones = stadiumId ? getZones(stadiumId) : [];
+export default function ZoneSelector({ stadiumId, value, onChange, customValue, onCustomChange, disabled, stadiums = [] }) {
+  const stadium = stadiums.find((s) => s.id === stadiumId);
+  const zones = stadium ? [...stadium.zones, { id: 'custom', name: 'Other' }] : [];
   const isDisabled = disabled || !stadiumId;
 
   if (!stadiumId) return null;
@@ -65,8 +66,8 @@ export default function ZoneSelector({ stadiumId, value, onChange, customText, o
           <input
             id="custom-destination-input"
             type="text"
-            value={customText || ''}
-            onChange={(e) => onCustomTextChange(e.target.value)}
+            value={customValue || ''}
+            onChange={(e) => onCustomChange(e.target.value)}
             placeholder={t('custom_destination_placeholder')}
             className="custom-dest-input"
             disabled={isDisabled}

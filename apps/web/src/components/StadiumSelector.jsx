@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { t } from '../i18n/index.js';
-import { STADIUM_GROUPS, getStadium } from '../data/stadiums.js';
 
 /**
  * Full-page scrollable stadium cards grouped by country.
@@ -44,11 +43,11 @@ const CITY_ICONS = {
   default: '🏟️',
 };
 
-export default function StadiumSelector({ value, onChange, disabled }) {
+export default function StadiumSelector({ value, onChange, disabled, stadiums = [], stadiumGroups = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const selectedStadium = value ? getStadium(value) : null;
+  const selectedStadium = value ? stadiums.find((s) => s.id === value) : null;
 
-  const filteredGroups = STADIUM_GROUPS.map((group) => ({
+  const filteredGroups = stadiumGroups.map((group) => ({
     ...group,
     stadiums: group.stadiums.filter(
       (s) =>
@@ -70,7 +69,7 @@ export default function StadiumSelector({ value, onChange, disabled }) {
             onClick={() => onChange('')}
             className="text-xs text-tg-accent-text font-medium hover:underline transition-all"
           >
-            Change
+            {t('change_stadium') || 'Change'}
           </button>
         )}
       </div>
@@ -108,7 +107,7 @@ export default function StadiumSelector({ value, onChange, disabled }) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search stadiums..."
+              placeholder={t('search_stadiums') || "Search stadiums..."}
               className="stadium-search"
               disabled={disabled}
             />
@@ -160,7 +159,7 @@ export default function StadiumSelector({ value, onChange, disabled }) {
             ))}
 
             {filteredGroups.length === 0 && (
-              <p className="text-sm text-tg-hint text-center py-6">No stadiums found</p>
+              <p className="text-sm text-tg-hint text-center py-6">{t('no_stadiums_found') || 'No stadiums found'}</p>
             )}
           </div>
         </>

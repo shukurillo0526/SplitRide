@@ -15,6 +15,7 @@ import InsufficientStarsModal from './components/InsufficientStarsModal.jsx';
 import JoinGroupModal from './components/JoinGroupModal.jsx';
 import ActiveRideScreen from './components/ActiveRideScreen.jsx';
 import PromoBanner from './components/PromoBanner.jsx';
+import OnboardingModal from './components/OnboardingModal.jsx';
 
 /**
  * App states: selecting → waiting → matched
@@ -39,7 +40,34 @@ export default function App() {
   const [joinLink, setJoinLink] = useState('https://t.me/SplitRide26');
   const [promoActive, setPromoActive] = useState(false);
   const [promotionEndDate, setPromotionEndDate] = useState('');
+  const [stadiums, setStadiums] = useState([]);
+  const [stadiumGroups, setStadiumGroups] = useState([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isMember, setIsMember] = useState(true); // default true to avoid flicker
+  const [isOffline, setIsOffline] = useState(typeof navigator !== 'undefined' ? !navigator.onLine : false);
   const [, setLangTick] = useState(0); // force re-render on language change
+
+  // Offline detection
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Onboarding check
+  useEffect(() => {
+    try {
+      const onboarded = localStorage.getItem('sr_onboarded');
+      if (!onboarded) {
+        setShowOnboarding(true);
+      }
+    } catch (e) { /* ignore */ }
+  }, []);
 
   // Initialize language from Telegram user, respecting manual override
   useEffect(() => {
@@ -63,11 +91,22 @@ export default function App() {
     }
   }, [languageCode]);
 
+  // Load persisted selections
+  useEffect(() => {
+    try {
+      const sId = localStorage.getItem('sr_stadiumId');
+      const zId = localStorage.getItem('sr_zoneId');
+      if (sId) setStadiumId(sId);
+      if (zId) setZoneId(zId);
+    } catch (e) {}
+  }, []);
+
   const refreshUserStatus = useCallback(async () => {
     if (!rawInitData) return;
     try {
       const res = await getUserStatus(rawInitData);
       if (res) {
+        setIsMember(res.member);
         setFreeRideAvailable(res.freeRideAvailable);
         setJoinLink(res.joinLink);
       }
@@ -116,8 +155,16 @@ export default function App() {
             setPromotionEndDate(data.promotionEndDate);
           }
         }
+
+        const stUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/stadiums`;
+        const stRes = await fetch(stUrl);
+        if (stRes.ok) {
+          const stData = await stRes.json();
+          setStadiums(stData.STADIUMS || []);
+          setStadiumGroups(stData.STADIUM_GROUPS || []);
+        }
       } catch (err) {
-        console.error('[App] Failed to fetch config:', err);
+        console.error('[App] Failed to fetch config/stadiums:', err);
       }
     };
     fetchConfig();
@@ -129,17 +176,29 @@ export default function App() {
     setZoneId('');
     setCustomDestination('');
     setError('');
+    try {
+      localStorage.setItem('sr_stadiumId', id);
+      localStorage.removeItem('sr_zoneId');
+    } catch(e) {}
   }, []);
 
   const handleZoneChange = useCallback((id) => {
     setZoneId(id);
     setCustomDestination('');
     setError('');
+    try {
+      localStorage.setItem('sr_zoneId', id);
+    } catch(e) {}
   }, []);
 
   // ── Payment Flow ─────────────────────────────────────────────────────────
   const handleFindMatch = useCallback(async () => {
     if (!stadiumId || !zoneId) return;
+
+    if (!isMember) {
+      setShowJoinModal(true);
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -277,6 +336,43 @@ export default function App() {
         <LanguageSwitcher onLanguageChange={handleLanguageChange} />
       </header>
 
+      {/* Offline Banner */}
+      {isOffline && (
+        <div className="bg-red-500/90 text-white text-xs font-bold px-5 py-2.5 flex items-center justify-center gap-2 animate-slide-down shadow-md z-50">
+          <span>⚠️</span>
+          <span>{t('offline_message') || 'You are offline. Please check your internet connection.'}</span>
+        </div>
+      )}
+
+      {/* Membership Banner */}
+      {!isMember && appState === 'selecting' && !showOnboarding && (
+        <div className="bg-blue-600/20 border-b border-blue-500/30 px-5 py-3 animate-slide-down z-40">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold text-blue-100 flex-1 leading-tight">
+              ⚠️ {t('join_banner_text') || 'Join our Telegram Group to use SplitRide.'}
+            </p>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                  try {
+                    window.Telegram?.WebApp?.openTelegramLink(joinLink) || window.open(joinLink, '_blank');
+                  } catch { window.open(joinLink, '_blank'); }
+                }}
+                className="text-[11px] bg-blue-500 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-blue-600 active:scale-95 transition-all"
+              >
+                {t('join_banner_btn') || 'Join'}
+              </button>
+              <button 
+                onClick={refreshUserStatus}
+                className="text-[11px] bg-white/10 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-white/20 active:scale-95 transition-all"
+              >
+                {t('verify_banner_btn') || 'Verify'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Main Content ────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col px-5 pb-20 overflow-y-auto">
         {activeTab === 'ride' && (
@@ -301,15 +397,21 @@ export default function App() {
                     value={stadiumId}
                     onChange={handleStadiumChange}
                     disabled={loading}
+                    stadiums={stadiums}
+                    stadiumGroups={stadiumGroups}
                   />
-                  <ZoneSelector
-                    stadiumId={stadiumId}
-                    value={zoneId}
-                    onChange={handleZoneChange}
-                    customText={customDestination}
-                    onCustomTextChange={setCustomDestination}
-                    disabled={loading}
-                  />
+
+                  {stadiumId && (
+                    <ZoneSelector
+                      stadiumId={stadiumId}
+                      value={zoneId}
+                      onChange={handleZoneChange}
+                      customValue={customDestination}
+                      onCustomChange={setCustomDestination}
+                      disabled={loading}
+                      stadiums={stadiums}
+                    />
+                  )}
                 </div>
 
                 {/* Error message */}
@@ -339,6 +441,7 @@ export default function App() {
                 stadiumId={stadiumId}
                 zoneId={zoneId}
                 rawInitData={rawInitData}
+                isFree={freeRideAvailable || promoActive}
                 onTimeout={handleTimeout}
                 onMatched={handleMatched}
               />
@@ -410,6 +513,18 @@ export default function App() {
         <InsufficientStarsModal
           amount={matchFee}
           onClose={() => setShowStarsModal(false)}
+        />
+      )}
+
+      {/* ── Onboarding Modal ─────────────────────────────────────────────── */}
+      {showOnboarding && (
+        <OnboardingModal
+          onComplete={() => {
+            try {
+              localStorage.setItem('sr_onboarded', 'true');
+            } catch (e) { /* ignore */ }
+            setShowOnboarding(false);
+          }}
         />
       )}
 

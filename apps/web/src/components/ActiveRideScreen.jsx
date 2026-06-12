@@ -88,7 +88,7 @@ export default function ActiveRideScreen({ rideData, rawInitData, onCompleted })
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse delay-200" />
           </div>
           <p className="text-[11px] text-emerald-400 font-extrabold uppercase tracking-widest mt-3">
-            Ride In Progress
+            {t('ride_in_progress') || 'Ride In Progress'}
           </p>
         </div>
 
@@ -101,7 +101,7 @@ export default function ActiveRideScreen({ rideData, rawInitData, onCompleted })
           </div>
 
           <p className="text-[10px] text-tg-hint font-black uppercase tracking-wider mb-2">
-            Match Corridor
+            {t('match_corridor') || 'Match Corridor'}
           </p>
 
           <h3 className="font-extrabold text-tg-text text-[17px] leading-tight mb-1">
@@ -137,10 +137,16 @@ export default function ActiveRideScreen({ rideData, rawInitData, onCompleted })
         </div>
 
         {/* Instructions */}
-        <div className="gradient-card rounded-2xl p-4 border border-white/5">
+        <div className="gradient-card rounded-2xl p-4 border border-white/5 space-y-3">
           <p className="text-xs text-tg-hint text-center leading-relaxed">
             {t('riding_instructions') || 'Open the group chat to coordinate with your matched crew and share your live location.'}
           </p>
+          <div className="border-t border-white/5 pt-3">
+            <p className="text-[10px] text-tg-hint/70 text-center uppercase font-bold tracking-wider mb-1">🛡️ {t('safety_first') || 'Safety First'}</p>
+            <p className="text-[11px] text-tg-hint text-center leading-relaxed">
+              {t('safety_disclaimer') || 'Meet in well-lit, public zones. Share your ride details with a friend.'}
+            </p>
+          </div>
         </div>
 
         {error && (

@@ -287,5 +287,30 @@ export async function checkExpiredQueues(bot) {
       }
       await r.del(`queue_three_timestamp:${stadiumId}:${zoneId}`);
     }
+    }
+  }
+}
+
+/**
+ * Notify members when a queue reaches 3/4.
+ */
+export async function notifyQueueAlmostFull(bot, stadiumId, zoneId, currentUserId) {
+  try {
+    const members = await getQueueMembers(stadiumId, zoneId);
+    if (members.length === 3) {
+      for (const m of members) {
+        if (m.userId !== currentUserId) {
+          const lang = await getUserLanguage(m.userId);
+          const msg = t(lang, 'queue_almost_full') || '3 of 4 matched — almost there!';
+          try {
+            await bot.api.sendMessage(m.userId, msg);
+          } catch (e) {
+            console.error(`[Matchmaking] Failed to notify ${m.userId} about queue size:`, e.message);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[Matchmaking] Failed to notify queue members:', err);
   }
 }

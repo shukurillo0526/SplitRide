@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { bot, webhookCallback } from './bot.js';
-import { authMiddleware } from './validators.js';
+import { authMiddleware, rateLimitMiddleware } from './validators.js';
 import { createMatchInvoiceLink, refundUser } from './payments.js';
 import { resolveLanguage } from './i18n.js';
 import {
@@ -18,12 +18,13 @@ import {
   storeChargeId,
   pushToQueue,
   storeMatchStatus,
+  storeUserData,
   getRedis,
   popThreeGroup,
   getAllUserIds,
 } from './redis.js';
 import { completeRide, processScheduledReminders } from './lifecycle.js';
-import { checkExpiredQueues, processMatch, setupQueueTimeout } from './matchmaking.js';
+import { checkExpiredQueues, processMatch, setupQueueTimeout, notifyQueueAlmostFull } from './matchmaking.js';
 import {
   PORT,
   WEBHOOK_URL,
@@ -37,6 +38,8 @@ import {
   getMatchKey,
   isPromotionActive,
   PROMOTION_END_DATE,
+  STADIUMS,
+  STADIUM_GROUPS,
 } from './config.js';
 
 const app = express();
@@ -75,7 +78,7 @@ async function checkGroupMembership(botInstance, userId) {
 }
 
 // ─── API: Check Membership Status ───────────────────────────────────────────
-app.get('/api/membership', authMiddleware, async (req, res) => {
+app.get('/api/membership', authMiddleware, rateLimitMiddleware, async (req, res) => {
   try {
     const user = req.telegramUser;
     const isMember = await checkGroupMembership(bot, user.id);
@@ -90,9 +93,13 @@ app.get('/api/membership', authMiddleware, async (req, res) => {
 });
 
 // ─── API: User Status (Membership & Free Ride) ──────────────────────────────
-app.get('/api/user-status', authMiddleware, async (req, res) => {
+app.get('/api/user-status', authMiddleware, rateLimitMiddleware, async (req, res) => {
   try {
     const user = req.telegramUser;
+    
+    // Store user profile data implicitly
+    await storeUserData(user);
+
     const isMember = await checkGroupMembership(bot, user.id);
     const r = getRedis();
     const hasUsedFree = await r.exists(`free_ride_used:${user.id}`);
@@ -108,7 +115,7 @@ app.get('/api/user-status', authMiddleware, async (req, res) => {
 });
 
 // ─── API: Create Invoice Link ────────────────────────────────────────────────
-app.post('/api/create-invoice', authMiddleware, async (req, res) => {
+app.post('/api/create-invoice', authMiddleware, rateLimitMiddleware, async (req, res) => {
   try {
     const { stadiumId, zoneId, customDestination } = req.body;
     const user = req.telegramUser;
@@ -177,6 +184,9 @@ app.post('/api/create-invoice', authMiddleware, async (req, res) => {
         await processMatch(bot, stadiumId, zoneId, result.members);
       } else {
         await setupQueueTimeout(bot, stadiumId, zoneId);
+        if (queueLength === 3) {
+          await notifyQueueAlmostFull(bot, stadiumId, zoneId, user.id);
+        }
       }
       
       return res.json({
@@ -210,6 +220,9 @@ app.post('/api/create-invoice', authMiddleware, async (req, res) => {
         await processMatch(bot, stadiumId, zoneId, result.members);
       } else {
         await setupQueueTimeout(bot, stadiumId, zoneId);
+        if (queueLength === 3) {
+          await notifyQueueAlmostFull(bot, stadiumId, zoneId, user.id);
+        }
       }
       
       return res.json({
@@ -234,7 +247,7 @@ app.post('/api/create-invoice', authMiddleware, async (req, res) => {
 });
 
 // ─── API: Match Status (for frontend polling) ────────────────────────────────
-app.get('/api/match-status', authMiddleware, async (req, res) => {
+app.get('/api/match-status', authMiddleware, rateLimitMiddleware, async (req, res) => {
   try {
     const user = req.telegramUser;
     const { stadiumId, zoneId } = req.query;
@@ -320,7 +333,7 @@ app.get('/api/match-status', authMiddleware, async (req, res) => {
 });
 
 // ─── API: Match with 3 Riders ────────────────────────────────────────────────
-app.post('/api/match-three', authMiddleware, async (req, res) => {
+app.post('/api/match-three', authMiddleware, rateLimitMiddleware, async (req, res) => {
   try {
     const user = req.telegramUser;
 
@@ -357,7 +370,7 @@ app.post('/api/match-three', authMiddleware, async (req, res) => {
 });
 
 // ─── API: Ride History ───────────────────────────────────────────────────────
-app.get('/api/ride-history', authMiddleware, async (req, res) => {
+app.get('/api/ride-history', authMiddleware, rateLimitMiddleware, async (req, res) => {
   try {
     const user = req.telegramUser;
     const history = await getRideHistory(user.id);
@@ -369,7 +382,7 @@ app.get('/api/ride-history', authMiddleware, async (req, res) => {
 });
 
 // ─── API: Cancel Ride & Refund ────────────────────────────────────────────────
-app.post('/api/cancel-ride', authMiddleware, async (req, res) => {
+app.post('/api/cancel-ride', authMiddleware, rateLimitMiddleware, async (req, res) => {
   try {
     const user = req.telegramUser;
     
@@ -449,8 +462,13 @@ app.get('/api/config', (req, res) => {
   });
 });
 
+// ─── API: Stadiums ───────────────────────────────────────────────────────────
+app.get('/api/stadiums', (req, res) => {
+  res.json({ STADIUMS, STADIUM_GROUPS });
+});
+
 // ─── API: Active Ride ────────────────────────────────────────────────────────
-app.get('/api/active-ride', authMiddleware, async (req, res) => {
+app.get('/api/active-ride', authMiddleware, rateLimitMiddleware, async (req, res) => {
   try {
     const user = req.telegramUser;
     const r = getRedis();
@@ -485,7 +503,7 @@ app.get('/api/active-ride', authMiddleware, async (req, res) => {
 });
 
 // ─── API: Complete Ride ──────────────────────────────────────────────────────
-app.post('/api/complete-ride', authMiddleware, async (req, res) => {
+app.post('/api/complete-ride', authMiddleware, rateLimitMiddleware, async (req, res) => {
   try {
     const user = req.telegramUser;
     const r = getRedis();

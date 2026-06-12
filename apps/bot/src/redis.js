@@ -123,29 +123,47 @@ export async function popFullGroup(stadiumId, zoneId) {
  */
 export async function popThreeGroup(stadiumId, zoneId) {
   const r = getRedis();
-  const key = `match:${stadiumId}:${zoneId}`;
-  const raw = await r.lrange(key, 0, 2);
+  const queueKey = `match:${stadiumId}:${zoneId}`;
+  const deadlineKey = `queue_deadline:${stadiumId}:${zoneId}`;
+  const threeTimestampKey = `queue_three_timestamp:${stadiumId}:${zoneId}`;
 
-  await r.ltrim(key, 3, -1);
+  const LUA_SCRIPT = `
+    local queueKey = KEYS[1]
+    local deadlineKey = KEYS[2]
+    local threeTimestampKey = KEYS[3]
 
-  // If queue is now empty, delete it and its deadline
-  const len = await r.llen(key);
-  if (len === 0) {
-    await r.del(key);
-    await r.del(`queue_deadline:${stadiumId}:${zoneId}`);
-  }
+    local members = redis.call('lrange', queueKey, 0, 2)
+    if #members < 3 then
+      return nil
+    end
 
-  // Delete queue_three_timestamp if it exists
-  await r.del(`queue_three_timestamp:${stadiumId}:${zoneId}`);
+    redis.call('ltrim', queueKey, 3, -1)
 
-  const members = raw.map((entry) => (typeof entry === 'string' ? JSON.parse(entry) : entry));
+    local len = redis.call('llen', queueKey)
+    if len == 0 then
+      redis.call('del', queueKey)
+      redis.call('del', deadlineKey)
+    end
 
-  // Clean up user queue mappings
-  for (const member of members) {
-    await r.del(`userqueue:${member.userId}`);
-  }
+    redis.call('del', threeTimestampKey)
 
-  return members;
+    for i = 1, #members do
+      local m = cjson.decode(members[i])
+      redis.call('del', 'userqueue:' .. tostring(m.userId))
+    end
+
+    return members
+  `;
+
+  const raw = await r.eval(
+    LUA_SCRIPT,
+    [queueKey, deadlineKey, threeTimestampKey],
+    []
+  );
+
+  if (!raw) return [];
+
+  return raw.map((entry) => (typeof entry === 'string' ? JSON.parse(entry) : entry));
 }
 
 /**
@@ -349,8 +367,49 @@ export async function getRideHistory(userId) {
  */
 export async function getAllUserIds() {
   const r = getRedis();
-  const keys = await r.keys('user_lang:*');
-  return keys.map((key) => parseInt(key.split(':')[1], 10));
+  let cursor = '0';
+  const userIds = new Set();
+  
+  do {
+    const [nextCursor, keys] = await r.scan(cursor, { match: 'user_lang:*', count: 100 });
+    cursor = nextCursor;
+    for (const key of keys) {
+      userIds.add(parseInt(key.split(':')[1], 10));
+    }
+  } while (cursor !== '0');
+  
+  return Array.from(userIds);
+}
+
+/**
+ * Store user profile data from Telegram initData.
+ * Note: Phone number is not provided in initData by default unless explicitly requested via bot.
+ */
+export async function storeUserData(user) {
+  const r = getRedis();
+  const key = `user:${user.id}`;
+  await r.hset(key, {
+    id: user.id,
+    first_name: user.first_name || '',
+    last_name: user.last_name || '',
+    username: user.username || '',
+    last_seen: Date.now()
+  });
+}
+
+/**
+ * Funnel tracking / Analytics helper
+ */
+export async function trackEvent(eventName, data = {}) {
+  try {
+    const r = getRedis();
+    const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const key = `analytics:${eventName}:${dateStr}`;
+    await r.incr(key); // Increment daily count
+    console.log(`[Analytics] ${eventName}`, data);
+  } catch (err) {
+    console.warn(`[Analytics] Failed to track ${eventName}:`, err.message);
+  }
 }
 
 

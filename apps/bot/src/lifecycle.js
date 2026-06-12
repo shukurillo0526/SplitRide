@@ -93,13 +93,18 @@ export async function completeRide(bot, topicId, isDispute = false) {
     await storeMatchStatus(member.userId, null); // Clear wait/match statuses for UI
 
     if (!isDispute) {
-      // Send DM notification
+      // Send DM notification with Rating
       try {
         const displayZoneName = zoneId === 'custom' && member.customDestination ? member.customDestination : zoneName;
+        
+        const keyboard = new InlineKeyboard()
+          .text('👍 Good', `rate:good:${topicId}`)
+          .text('👎 Bad', `rate:bad:${topicId}`);
+
         await bot.api.sendMessage(
           member.userId,
-          `🚗 Your ride from *${stadiumName}* to *${displayZoneName}* has finished!\n\nThank you for using SPLITRIDE. The temporary chat group has been deleted.`,
-          { parse_mode: 'Markdown' }
+          `🚗 Your ride from *${stadiumName}* to *${displayZoneName}* has finished!\n\nHow was your ride experience?`,
+          { parse_mode: 'Markdown', reply_markup: keyboard }
         );
       } catch (err) {
         console.warn(`[Lifecycle] DM failed for user ${member.userId}:`, err.message);

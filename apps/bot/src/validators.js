@@ -8,7 +8,7 @@ import { getRedis } from './redis.js';
  * Throws on invalid data.
  */
 export function validateInitData(initDataRaw) {
-  validate(initDataRaw, BOT_TOKEN, { expiresIn: 0 });
+  validate(initDataRaw, BOT_TOKEN, { expiresIn: 86400 });
   return parse(initDataRaw);
 }
 
@@ -87,5 +87,37 @@ export function authMiddleware(req, res, next) {
   } catch (error) {
     console.error('[Auth] initData validation failed:', error.message);
     return res.status(401).json({ error: 'Invalid initData signature' });
+  }
+}
+
+/**
+ * Express middleware to rate limit authenticated users.
+ * Allows 30 requests per 60 seconds per user per path.
+ */
+export async function rateLimitMiddleware(req, res, next) {
+  try {
+    const user = req.telegramUser;
+    if (!user || !user.id) {
+      return next();
+    }
+    
+    const r = getRedis();
+    const key = `ratelimit:${user.id}:${req.path}`;
+    const limit = 30; // 30 requests
+    const windowSec = 60; // per 60 seconds
+
+    const current = await r.incr(key);
+    if (current === 1) {
+      await r.expire(key, windowSec);
+    }
+
+    if (current > limit) {
+      return res.status(429).json({ error: 'Too many requests. Please try again later.' });
+    }
+
+    next();
+  } catch (err) {
+    console.error('[RateLimit] Error:', err.message);
+    next(); // Fallback: allow request if redis rate limit fails
   }
 }

@@ -14,5 +14,6 @@
   "blacklisted_error": "⛔ Vous êtes actuellement suspendu suite à un signalement d'absence. Votre suspension prend fin dans {hours} heures.",
   "queue_timeout": "⏰ Nous n'avons pas trouvé assez de passagers à temps. Vos {amount} ⭐ ont été remboursées.",
   "open_app": "Ouvrir SPLITRIDE",
-  "error_generic": "Une erreur est survenue. Veuillez réessayer."
+  "error_generic": "Une erreur est survenue. Veuillez réessayer.",
+  "queue_almost_full": "3 sur 4 trouvés — presque là !"
 }

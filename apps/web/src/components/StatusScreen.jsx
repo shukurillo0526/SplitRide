@@ -3,7 +3,7 @@ import { t } from '../i18n/index.js';
 import { getMatchStatus, cancelRide, matchThree } from '../api/client.js';
 import SplitRideLogo from './SplitRideLogo.jsx';
 
-export default function StatusScreen({ stadiumId, zoneId, rawInitData, onTimeout, onMatched }) {
+export default function StatusScreen({ stadiumId, zoneId, rawInitData, isFree, onTimeout, onMatched }) {
   const [queuePosition, setQueuePosition] = useState(1);
   const [timedOut, setTimedOut] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -13,35 +13,38 @@ export default function StatusScreen({ stadiumId, zoneId, rawInitData, onTimeout
   const intervalRef = useRef(null);
 
   useEffect(() => {
+    let delay = 6000;
+    let timeoutId;
+
     const poll = async () => {
       try {
         const status = await getMatchStatus(stadiumId, zoneId, rawInitData);
 
         if (status.matched) {
-          clearInterval(intervalRef.current);
           onMatched(status);
           return;
         }
 
         if (status.timedOut) {
-          clearInterval(intervalRef.current);
           setTimedOut(true);
           return;
         }
 
         setQueuePosition(status.queuePosition || 1);
         setThreeJoinedAt(status.threeJoinedAt || null);
+        delay = 6000;
       } catch (err) {
         console.error('[Poll] Error:', err);
+        delay = Math.min(delay * 1.5, 30000);
       }
+
+      timeoutId = setTimeout(poll, delay);
     };
 
-    // Poll immediately, then every 3 seconds
     poll();
-    intervalRef.current = setInterval(poll, 3000);
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [stadiumId, zoneId, rawInitData, onMatched]);
 
@@ -80,7 +83,9 @@ export default function StatusScreen({ stadiumId, zoneId, rawInitData, onTimeout
   };
 
   const handleCancelClick = () => {
-    const confirmMessage = t('cancel_confirm', { amount: '150' }) || 'Are you sure you want to cancel and get refunded?';
+    const confirmMessage = isFree 
+      ? (t('cancel_confirm_free') || 'Are you sure you want to cancel searching for a match?')
+      : (t('cancel_confirm', { amount: '150' }) || 'Are you sure you want to cancel and get refunded?');
     
     const proceedCancel = async () => {
       setCancelling(true);
@@ -203,7 +208,7 @@ export default function StatusScreen({ stadiumId, zoneId, rawInitData, onTimeout
         className="w-full mt-6 py-4 px-6 rounded-2xl border border-red-500/20 bg-red-500/5 text-sm font-bold text-red-400 hover:bg-red-500/10 transition-all duration-300 disabled:opacity-50 active:scale-[0.98] flex items-center justify-center gap-2"
       >
         <span className="text-base">❌</span>
-        {cancelling ? t('payment_pending') : t('cancel_ride')}
+        {cancelling ? t('payment_pending') : (isFree ? (t('cancel_btn_free') || 'Cancel Search') : t('cancel_ride'))}
       </button>
 
       {/* Subtle background gradient animation */}
