@@ -14,6 +14,7 @@ import HistoryTab from './components/HistoryTab.jsx';
 import InsufficientStarsModal from './components/InsufficientStarsModal.jsx';
 import JoinGroupModal from './components/JoinGroupModal.jsx';
 import ActiveRideScreen from './components/ActiveRideScreen.jsx';
+import PromoBanner from './components/PromoBanner.jsx';
 
 /**
  * App states: selecting → waiting → matched
@@ -36,6 +37,8 @@ export default function App() {
   const [showStarsModal, setShowStarsModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinLink, setJoinLink] = useState('https://t.me/SplitRide26');
+  const [promoActive, setPromoActive] = useState(false);
+  const [promotionEndDate, setPromotionEndDate] = useState('');
   const [, setLangTick] = useState(0); // force re-render on language change
 
   // Initialize language from Telegram user, respecting manual override
@@ -105,6 +108,12 @@ export default function App() {
           const data = await res.json();
           if (data.matchFeeStars) {
             setMatchFee(data.matchFeeStars);
+          }
+          if (data.promoActive !== undefined) {
+            setPromoActive(data.promoActive);
+          }
+          if (data.promotionEndDate) {
+            setPromotionEndDate(data.promotionEndDate);
           }
         }
       } catch (err) {
@@ -284,6 +293,8 @@ export default function App() {
                   </p>
                 </div>
 
+                {promoActive && <PromoBanner promotionEndDate={promotionEndDate} />}
+
                 {/* Selectors */}
                 <div className="space-y-5 mb-6">
                   <StadiumSelector
@@ -318,6 +329,7 @@ export default function App() {
                   loading={loading}
                   fee={matchFee}
                   free={freeRideAvailable}
+                  promoActive={promoActive}
                 />
               </div>
             )}

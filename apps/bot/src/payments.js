@@ -130,8 +130,8 @@ export async function processPayment(bot, ctx) {
  * Refund a single user's Stars payment.
  */
 export async function refundUser(bot, userId, chargeId) {
-  if (chargeId === 'free') {
-    console.log(`[Refund] User ${userId} had a free ride. No Star refund required.`);
+  if (chargeId === 'free' || chargeId === 'promo_free') {
+    console.log(`[Refund] User ${userId} had a free/promo ride. No Star refund required.`);
     return true;
   }
   try {

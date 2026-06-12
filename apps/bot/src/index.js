@@ -20,6 +20,7 @@ import {
   storeMatchStatus,
   getRedis,
   popThreeGroup,
+  getAllUserIds,
 } from './redis.js';
 import { completeRide, processScheduledReminders } from './lifecycle.js';
 import { checkExpiredQueues, processMatch, setupQueueTimeout } from './matchmaking.js';
@@ -34,6 +35,8 @@ import {
   getStadium,
   getZone,
   getMatchKey,
+  isPromotionActive,
+  PROMOTION_END_DATE,
 } from './config.js';
 
 const app = express();
@@ -153,6 +156,37 @@ app.post('/api/create-invoice', authMiddleware, async (req, res) => {
     }
 
     const lang = resolveLanguage(user.languageCode);
+
+    if (isPromotionActive()) {
+      console.log(`[Invoice] Promo active. User ${user.id} matches for free. Pushing directly to queue...`);
+      const matchKey = getMatchKey(stadiumId, zoneId);
+      
+      // Store charge ID as 'promo_free'
+      await storeChargeId(user.id, matchKey, 'promo_free');
+      
+      const userData = {
+        userId: user.id,
+        firstName: user.firstName || 'Fan',
+        username: user.username || '',
+        lang,
+        customDestination: customDestination || '',
+      };
+      
+      const result = await pushToQueue(stadiumId, zoneId, userData);
+      if (result.status === 'matched') {
+        await processMatch(bot, stadiumId, zoneId, result.members);
+      } else {
+        await setupQueueTimeout(bot, stadiumId, zoneId);
+      }
+      
+      return res.json({
+        free: true,
+        stadium: stadium.name,
+        zone: zone.name,
+        promo: true,
+      });
+    }
+
     const r = getRedis();
     const hasUsedFree = await r.exists(`free_ride_used:${user.id}`);
 
@@ -410,6 +444,8 @@ app.post('/api/cancel-ride', authMiddleware, async (req, res) => {
 app.get('/api/config', (req, res) => {
   res.json({
     matchFeeStars: MATCH_FEE_STARS,
+    promoActive: isPromotionActive(),
+    promotionEndDate: PROMOTION_END_DATE,
   });
 });
 
@@ -481,6 +517,51 @@ app.get('/api/cron', async (req, res) => {
   } catch (error) {
     console.error('[Cron] Cron execution failed:', error);
     res.status(500).json({ error: 'Cron task failed.' });
+  }
+});
+
+// ─── API: Admin Broadcast Promotion Message ─────────────────────────────────
+app.post('/api/admin/broadcast-promo', async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    if (authHeader !== `Bearer ${WEBHOOK_SECRET}`) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: 'Message body is required' });
+    }
+
+    console.log(`[Admin Broadcast] Starting broadcast to all users...`);
+    const userIds = await getAllUserIds();
+    console.log(`[Admin Broadcast] Found ${userIds.length} users in database.`);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // Send messages asynchronously
+    for (const userId of userIds) {
+      try {
+        await bot.api.sendMessage(userId, message, { parse_mode: 'Markdown' });
+        successCount++;
+        // Small delay to prevent hitting Telegram rate limits (max 30/sec)
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      } catch (err) {
+        console.warn(`[Admin Broadcast] Failed to send message to user ${userId}:`, err.message);
+        failCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      sentCount: successCount,
+      failedCount: failCount,
+      totalCount: userIds.length,
+    });
+  } catch (error) {
+    console.error('[Admin Broadcast] Execution failed:', error);
+    res.status(500).json({ error: 'Broadcast failed.' });
   }
 });
 

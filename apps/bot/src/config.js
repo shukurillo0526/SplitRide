@@ -14,6 +14,11 @@ export const MATCH_FEE_STARS = parseInt(process.env.MATCH_FEE_STARS || '150', 10
 export const QUEUE_TIMEOUT_MS = parseInt(process.env.QUEUE_TIMEOUT_MS || '900000', 10);
 export const BLACKLIST_TTL_SECONDS = parseInt(process.env.BLACKLIST_TTL_SECONDS || '259200', 10);
 export const GROUP_SIZE = 4;
+export const PROMOTION_END_DATE = process.env.PROMOTION_END_DATE || '2026-06-18T06:00:00Z';
+
+export function isPromotionActive() {
+  return Date.now() < Date.parse(PROMOTION_END_DATE);
+}
 
 // ─── World Cup 2026 Stadiums ─────────────────────────────────────────────────
 export const STADIUMS = [

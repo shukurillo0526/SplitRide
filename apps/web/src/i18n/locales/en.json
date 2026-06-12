@@ -57,5 +57,9 @@
   "riding_instructions": "Open the group chat to coordinate with your matched crew and share your live location.",
   "view_ride_details": "View Ride Details",
   "buy_stars": "Buy Telegram Stars",
-  "free_badge": "Free"
+  "free_badge": "Free",
+  "promo_banner_title": "World Cup Promo: 100% FREE Matching!",
+  "promo_banner_subtitle": "Reverts to $3 after Uzbek vs Colombia match",
+  "promo_banner_countdown": "Ends in: {time}",
+  "promo_button_badge": "Promo FREE"
 }

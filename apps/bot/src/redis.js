@@ -344,3 +344,13 @@ export async function getRideHistory(userId) {
   return raw.map((entry) => (typeof entry === 'string' ? JSON.parse(entry) : entry));
 }
 
+/**
+ * Retrieve all registered user IDs.
+ */
+export async function getAllUserIds() {
+  const r = getRedis();
+  const keys = await r.keys('user_lang:*');
+  return keys.map((key) => parseInt(key.split(':')[1], 10));
+}
+
+

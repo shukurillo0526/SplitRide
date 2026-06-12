@@ -15,5 +15,7 @@
   "queue_timeout": "⏰ We couldn't find enough riders in time. Your {amount} ⭐ have been refunded.",
   "open_app": "Open SPLITRIDE",
   "error_generic": "Something went wrong. Please try again.",
-  "superchat_welcome": "👋 Welcome {mention} to the SplitRide Supergroup! 🏟️⚽\n\n💬 Feel free to use this group chat to coordinate and find rides with other fans completely *free of charge*! This chat is and always will be open and free.\n\n🚕 *Want an easier and faster way to match?*\nTry our automated *SplitRide Mini App*! For just *$3* (worth a cup of coffee ☕), it instantly matches you with a crew of riders heading to your exact destination, sets up a private group, and provides live coordination status buttons.\n\n🎁 *First Time?* Your first ride search is *100% FREE*!\n\n👉 Tap the button below to launch the app!"
+  "superchat_welcome": "👋 Welcome {mention} to the SplitRide Supergroup! 🏟️⚽\n\n💬 Feel free to use this group chat to coordinate and find rides with other fans completely *free of charge*! This chat is and always will be open and free.\n\n🚕 *Want an easier and faster way to match?*\nTry our automated *SplitRide Mini App*! For just *$3* (worth a cup of coffee ☕), it instantly matches you with a crew of riders heading to your exact destination, sets up a private group, and provides live coordination status buttons.\n\n🎁 *First Time?* Your first ride search is *100% FREE*!\n\n👉 Tap the button below to launch the app!",
+  "promo_bot_alert": "LIMITED TIME WORLD CUP PROMO: Rideshare matching is currently 100% FREE for all users!",
+  "promo_bot_group_alert": "LIMITED TIME WORLD CUP PROMO: Rideshare matching is currently 100% FREE in our Mini App!"
 }

@@ -1,5 +1,5 @@
 import { Bot, InlineKeyboard, webhookCallback } from 'grammy';
-import { BOT_TOKEN, FRONTEND_URL, DISPATCH_GROUP_ID } from './config.js';
+import { BOT_TOKEN, FRONTEND_URL, DISPATCH_GROUP_ID, isPromotionActive } from './config.js';
 import { processPayment } from './payments.js';
 import { registerDisputeHandlers } from './disputes.js';
 import { t, resolveLanguage, getUserLanguage } from './i18n.js';
@@ -39,8 +39,14 @@ bot.command('start', async (ctx) => {
     FRONTEND_URL
   );
 
-  await ctx.reply(t(lang, 'welcome'), {
+  let welcomeText = t(lang, 'welcome');
+  if (isPromotionActive()) {
+    welcomeText = `🎁 *${t(lang, 'promo_bot_alert')}*\n\n${welcomeText}`;
+  }
+
+  await ctx.reply(welcomeText, {
     reply_markup: keyboard,
+    parse_mode: 'Markdown',
   });
 });
 
@@ -155,7 +161,10 @@ bot.on('message:new_chat_members', async (ctx) => {
     const mention = `[${name}](tg://user?id=${member.id})`;
     const lang = await getUserLanguage(member.id, member.language_code || ctx.from?.language_code);
 
-    const welcomeText = t(lang, 'superchat_welcome', { mention });
+    let welcomeText = t(lang, 'superchat_welcome', { mention });
+    if (isPromotionActive()) {
+      welcomeText = `🎁 *${t(lang, 'promo_bot_group_alert')}*\n\n${welcomeText}`;
+    }
     const botLink = `https://t.me/${ctx.me.username}`;
     const keyboard = new InlineKeyboard().url(t(lang, 'open_app'), botLink);
 
